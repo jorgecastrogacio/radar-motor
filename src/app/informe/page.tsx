@@ -25,6 +25,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { ALL_AXIS_IDS, AXES_CONFIG } from '../../data/tests-catalog';
+import { CATEGORY_THEMES } from '../../data/category-theme';
 import { loadLastReport, SavedReport } from '../../lib/session-store';
 import { determineArchetype, MotorArchetype } from '../../data/archetypes';
 import { getRecommendedMicroChallenges, MicroChallenge } from '../../data/micro-challenges';
@@ -322,29 +323,33 @@ function InformeContent() {
         </div>
       </section>
 
-      {/* Gráfico Radar Interactivo de 6 Ejes con Selector de Comparación */}
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-6 shadow-xs print:hidden">
+      {/* Gráfico Radar Interactivo de 6 Ejes - VISTA DE MAPA OFICIAL (#0F172A) */}
+      <section className="rounded-[22px] border border-slate-800 bg-[#0F172A] p-6 sm:p-8 space-y-6 shadow-xl print:hidden text-white">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <Compass className="h-5 w-5 text-blue-600" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FACC15] text-[#0F172A] mb-2 shadow-xs">
+              <span>★</span>
+              <span>VISTA DE MAPA RADAR</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2 tracking-tight">
+              <Compass className="h-5 w-5 text-[#FACC15]" />
               <span>Mapa Biomotor de 6 Ejes</span>
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Compara tus resultados con la Zona Saludable Motriz (45–75 puntos) o superpón a otro miembro.
+            <p className="text-xs text-[#CBD5E1] mt-0.5">
+              Compara tus resultados con la Zona Saludable Motriz (45–75 pts) o superpón a otro miembro.
             </p>
           </div>
 
           {/* Selector de Comparación */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <label htmlFor="comparison-select" className="text-xs font-semibold text-slate-600 whitespace-nowrap">
+            <label htmlFor="comparison-select" className="text-xs font-semibold text-[#CBD5E1] whitespace-nowrap">
               Superponer:
             </label>
             <select
               id="comparison-select"
               value={comparisonMode}
               onChange={(e) => setComparisonMode(e.target.value)}
-              className="text-xs font-medium rounded-xl border border-slate-300 bg-slate-50 py-2 px-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer w-full sm:w-auto"
+              className="text-xs font-medium rounded-xl border border-slate-700 bg-[#1E293B] py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-[#2563EB] cursor-pointer w-full sm:w-auto"
             >
               <option value="none">Sin superposición</option>
               {challengeData && (
@@ -371,11 +376,12 @@ function InformeContent() {
           </div>
         </div>
 
-        {/* El Gráfico SVG Puro */}
+        {/* El Gráfico SVG Puro sobre fondo de mapa */}
         <div className="py-2">
           <RadarChartSvg
             primarySeries={primarySeries}
             comparisonSeries={comparisonSeries}
+            themeVariant="map_dark"
           />
         </div>
       </section>
@@ -491,29 +497,46 @@ function InformeContent() {
 
       {/* Desglose Detallado por los 6 Ejes */}
       <section className="space-y-4 print:hidden">
-        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <Activity className="h-5 w-5 text-blue-600" />
-          <span>Desglose por Ejes y Pruebas Realizadas</span>
-        </h2>
+        <div>
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Activity className="h-5 w-5 text-blue-600" />
+            <span>Desglose por Categorías y Pruebas Realizadas</span>
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Resultados individuales ordenados según el currículo biomotor oficial de 6 categorías.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {ALL_AXIS_IDS.map((axisId) => {
             const ax = report.axisResults?.[axisId];
             if (!ax) return null;
+            const catTheme = CATEGORY_THEMES[axisId];
 
             return (
               <div
                 key={axisId}
-                className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3 shadow-xs"
+                className="rounded-[20px] border border-slate-200 bg-white p-5 space-y-3.5 shadow-xs"
               >
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-bold text-sm text-slate-900">{ax.name}</h3>
-                    <span className="text-[11px] font-semibold text-slate-500">
-                      Nivel: <strong className="text-slate-800">{ax.level}</strong>
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className="w-7 h-7 rounded-full text-white text-xs font-black flex items-center justify-center shrink-0 shadow-xs"
+                      style={{ backgroundColor: catTheme.color }}
+                    >
+                      {catTheme.number}
                     </span>
+                    <div>
+                      <h3 className="font-bold text-sm text-slate-900 leading-tight">{ax.name}</h3>
+                      <span className="text-[11px] font-semibold text-slate-500">
+                        Nivel: <strong className="text-slate-800">{ax.level}</strong>
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-xl font-mono font-black text-slate-900 tabular-nums">
+                  <span
+                    className="text-xl font-mono font-black tabular-nums"
+                    style={{ color: catTheme.colorText }}
+                  >
                     {Math.round(ax.score)} <span className="text-xs font-normal text-slate-400">pts</span>
                   </span>
                 </div>
@@ -521,16 +544,11 @@ function InformeContent() {
                 {/* Barra de progreso */}
                 <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
                   <div
-                    className={`h-full transition-all duration-500 ${
-                      ax.score >= 85
-                        ? 'bg-indigo-600'
-                        : ax.score >= 55
-                        ? 'bg-emerald-500'
-                        : ax.score >= 25
-                        ? 'bg-amber-500'
-                        : 'bg-slate-400'
-                    }`}
-                    style={{ width: `${Math.min(100, Math.max(5, ax.score))}%` }}
+                    className="h-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(100, Math.max(5, ax.score))}%`,
+                      backgroundColor: catTheme.color,
+                    }}
                   />
                 </div>
 
@@ -543,7 +561,7 @@ function InformeContent() {
                           {tr.name}
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold font-mono">
+                          <span className="font-bold font-mono text-slate-800">
                             {tr.skipped ? 'Omitida (0 pts)' : `${tr.rawValue} ${tr.unit}`}
                           </span>
                           <span

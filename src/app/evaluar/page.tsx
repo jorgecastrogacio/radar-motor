@@ -27,6 +27,7 @@ import {
   EXPRESS_TEST_IDS,
   TESTS_CATALOG,
 } from '../../data/tests-catalog';
+import { CATEGORY_THEMES } from '../../data/category-theme';
 import { AgeBracket, Sex, TestId } from '../../types/radar-motor';
 import { evaluateFullReport, getAgeBracket } from '../../lib/scoring-engine';
 import {
@@ -362,154 +363,234 @@ function EvaluarContent() {
       )}
 
       {/* =========================================================================
-          PASO 3: PANTALLA DE EJECUCIÓN (PRUEBA A PRUEBA)
+          PASO 3: PANTALLA DE EJECUCIÓN (PRUEBA A PRUEBA) - SISTEMA DE CATEGORÍAS
       ========================================================================= */}
-      {step === 3 && (
-        <section className="space-y-6 animate-in fade-in duration-150">
-          {/* Barra de Progreso Superior */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold">
-              <span className="text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Prueba {currentTestIndex + 1} de {testSequence.length} · {AXES_CONFIG[currentTest.axisId].name}
-              </span>
-              {safetyStatus === 'amber' && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300">
-                  <AlertTriangle className="h-3 w-3" />
-                  <span>Modo Precaución</span>
-                </span>
-              )}
-            </div>
-            <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+      {step === 3 && (() => {
+        const theme = CATEGORY_THEMES[currentTest.axisId];
+        return (
+          <section className="space-y-6 animate-in fade-in duration-150">
+            {/* Tarjeta de Categoría Oficial (Bloque 3/5) */}
+            <div className="rounded-[22px] bg-white border border-slate-200 shadow-md overflow-hidden">
+              {/* Cabecera sólida de la Categoría */}
               <div
-                className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-all duration-300"
-                style={{ width: `${((currentTestIndex + 1) / testSequence.length) * 100}%` }}
-              />
-            </div>
-          </div>
+                className="px-5 py-4 flex flex-wrap items-center justify-between gap-3 text-white transition-colors duration-200"
+                style={{ backgroundColor: theme.color }}
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className="w-9 h-9 rounded-full bg-white flex items-center justify-center font-black text-sm shadow-xs shrink-0"
+                    style={{ color: theme.colorText }}
+                  >
+                    {theme.number}
+                  </span>
+                  <div>
+                    <p className="text-white font-extrabold text-base tracking-tight leading-none">
+                      {theme.label}
+                    </p>
+                    <p className="text-white/85 text-xs font-medium pt-1">
+                      Prueba {currentTestIndex + 1} de {testSequence.length} · {currentTest.name}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {safetyStatus === 'amber' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-300 text-amber-950 shadow-xs">
+                      <AlertTriangle className="h-3 w-3" />
+                      <span>Modo Precaución</span>
+                    </span>
+                  )}
+                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-white/20 text-white backdrop-blur-xs">
+                    {mode === 'express' ? 'Modo Exprés (6)' : mode === 'family' ? 'Modo Familia' : 'Test Completo (18)'}
+                  </span>
+                </div>
+              </div>
 
-          {/* SELECTOR DE TURNOS PARA MODO FAMILIA */}
-          {mode === 'family' && (
-            <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                Turno en esta prueba ({currentTest.shortName}):
-              </span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {participants.map((p, idx) => {
-                  const isCurrentTurn = currentParticipantIndex === idx;
-                  const hasResultInThisTest = p.inputs[currentTestId] !== undefined;
+              {/* Tira de puntos (Dots Progress) inmediatamente bajo la cabecera */}
+              <div className="px-5 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto">
+                {testSequence.map((tId, idx) => {
+                  const isCurrent = idx === currentTestIndex;
+                  const isDone = idx < currentTestIndex;
                   return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setCurrentParticipantIndex(idx)}
-                      className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between gap-1.5 ${
-                        isCurrentTurn
-                          ? 'border-sky-500 bg-white dark:bg-slate-900 shadow-sm ring-2 ring-sky-400 font-bold'
-                          : 'border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300'
-                      }`}
-                    >
-                      <div className="overflow-hidden">
-                        <p className="text-xs truncate">{p.alias}</p>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400">{p.age} años</p>
-                      </div>
-                      {hasResultInThisTest ? (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                      ) : (
-                        <span className="h-2 w-2 rounded-full bg-amber-400 shrink-0" />
-                      )}
-                    </button>
+                    <div
+                      key={tId}
+                      className={`h-2.5 rounded-full transition-all ${isCurrent ? 'w-6' : 'w-2.5'}`}
+                      style={{
+                        backgroundColor: isCurrent || isDone ? theme.color : '#CBD5E1',
+                      }}
+                    />
                   );
                 })}
               </div>
+
+              {/* Cuerpo de la tarjeta */}
+              <div className="p-5 sm:p-6 space-y-6">
+                {/* SELECTOR DE TURNOS PARA MODO FAMILIA */}
+                {mode === 'family' && (
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
+                      Turno en esta prueba ({currentTest.shortName}):
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {participants.map((p, idx) => {
+                        const isCurrentTurn = currentParticipantIndex === idx;
+                        const hasResultInThisTest = p.inputs[currentTestId] !== undefined;
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => setCurrentParticipantIndex(idx)}
+                            className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between gap-1.5 btn-press ${
+                              isCurrentTurn
+                                ? 'border-2 shadow-sm font-bold bg-white'
+                                : 'border-slate-200 bg-white/60 text-slate-700'
+                            }`}
+                            style={isCurrentTurn ? { borderColor: theme.colorText } : {}}
+                          >
+                            <div className="overflow-hidden">
+                              <p className="text-xs truncate">{p.alias}</p>
+                              <p className="text-[10px] text-slate-500">{p.age} años</p>
+                            </div>
+                            {hasResultInThisTest ? (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                            ) : (
+                              <span className="h-2 w-2 rounded-full bg-amber-400 shrink-0" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Título de la prueba con chip circular */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className="w-7 h-7 rounded-full text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-xs"
+                      style={{ backgroundColor: theme.colorText }}
+                    >
+                      {currentTest.order}
+                    </span>
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {currentTest.name}
+                    </h2>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-600 pl-9">
+                    {currentParticipant ? `Registrando para: ${currentParticipant.alias} (${currentParticipant.age} años) · ` : ''}
+                    Unidad: <strong>{currentTest.unit}</strong>
+                  </p>
+                </div>
+
+                {/* Ficha Visual Dual Técnica de la Prueba con Píldora de Procedencia */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      Guía Técnica de Movimiento
+                    </span>
+                    <span className="badge-provenance-tech">
+                      Referencia técnica vectorial
+                    </span>
+                  </div>
+                  <TestIllustration testId={currentTestId} />
+                </div>
+
+                {/* Protocolo y Seguridad con Píldora de Nota */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-2 rounded-2xl bg-slate-50 border border-slate-200 p-4 sm:p-5 space-y-2">
+                    <p className="font-bold text-xs uppercase tracking-wide text-slate-900">
+                      Cómo realizarla:
+                    </p>
+                    <ul className="space-y-1.5 text-xs sm:text-sm text-slate-700">
+                      {currentTest.protocolSteps.map((step, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="font-bold mt-0.5" style={{ color: theme.colorText }}>•</span>
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-2xl bg-amber-50/70 border border-amber-200 p-4 sm:p-5 space-y-2.5">
+                    <div className="flex items-center gap-2 text-amber-950 font-bold text-xs uppercase tracking-wide">
+                      <ShieldAlert className="h-4 w-4 text-amber-700" />
+                      <span>Seguridad Postural</span>
+                    </div>
+                    <p className="text-xs text-amber-950 leading-relaxed font-medium">
+                      {currentTest.safetyCue}
+                    </p>
+                    <div className="pt-2 border-t border-amber-200/70">
+                      <span className="pill-note text-[11px]">
+                        Material: {currentTest.homeEquivalent}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Temporizador / Modo de entrada interactivo */}
+                <div className="pt-2">
+                  {currentTest.timerMode === 'countdown' && (
+                    <CountdownTimer
+                      key={`${currentTestId}-${currentParticipant.id}`}
+                      durationSeconds={currentTest.durationSeconds || 30}
+                      testName={currentTest.shortName}
+                      unit={currentTest.unit}
+                      onFinish={(val) => handleSaveScore(val)}
+                    />
+                  )}
+
+                  {currentTest.timerMode === 'stopwatch' && (
+                    <StopwatchTimer
+                      key={`${currentTestId}-${currentParticipant.id}`}
+                      testName={currentTest.shortName}
+                      maxSeconds={currentTest.maxSeconds}
+                      direction={currentTest.direction}
+                      onFinish={(val) => handleSaveScore(val)}
+                    />
+                  )}
+
+                  {currentTest.timerMode === 'manual_scale' && currentTest.visualScaleOptions && (
+                    <ManualScaleInput
+                      key={`${currentTestId}-${currentParticipant.id}`}
+                      testName={currentTest.shortName}
+                      visualScaleOptions={currentTest.visualScaleOptions}
+                      onFinish={(val) => handleSaveScore(val)}
+                    />
+                  )}
+                </div>
+
+                {/* LEY ANTI-TRAMPAS VISIBLE: Botón para omitir */}
+                <div className="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    disabled={currentTestIndex === 0 && currentParticipantIndex === 0}
+                    onClick={() => {
+                      if (mode === 'family' && currentParticipantIndex > 0) {
+                        setCurrentParticipantIndex((prev) => prev - 1);
+                      } else if (currentTestIndex > 0) {
+                        setCurrentTestIndex((prev) => prev - 1);
+                        if (mode === 'family') setCurrentParticipantIndex(participants.length - 1);
+                      }
+                    }}
+                    className="min-h-[46px] px-4 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 disabled:opacity-30 btn-press"
+                  >
+                    <ChevronLeft className="h-4 w-4 inline mr-1" />
+                    <span>Anterior</span>
+                  </button>
+
+                  {/* Botón Explícito de Ley Anti-Trampas */}
+                  <button
+                    type="button"
+                    onClick={() => handleSaveScore(null)}
+                    className="min-h-[46px] px-4 py-2 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-950 text-xs font-bold transition-colors btn-press"
+                  >
+                    <span>No realizada / Saltar (suma 0 pts)</span>
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
-
-          {/* Ficha Visual Dual Técnica de la Prueba */}
-          <div className="space-y-2">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-              {currentTest.name}
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              {currentParticipant ? `Registrando para: ${currentParticipant.alias} (${currentParticipant.age} años)` : ''}
-            </p>
-            <TestIllustration testId={currentTestId} />
-          </div>
-
-          {/* Protocolo y Seguridad */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 text-xs sm:text-sm text-slate-700 dark:text-slate-300">
-            <p className="font-bold text-slate-900 dark:text-white">Cómo realizarla:</p>
-            <ul className="space-y-1">
-              {currentTest.protocolSteps.map((step, idx) => (
-                <li key={idx} className="flex items-start gap-1.5">
-                  <span className="text-sky-600 font-bold">•</span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Temporizador / Modo de entrada interactivo */}
-          <div className="pt-2">
-            {currentTest.timerMode === 'countdown' && (
-              <CountdownTimer
-                key={`${currentTestId}-${currentParticipant.id}`}
-                durationSeconds={currentTest.durationSeconds || 30}
-                testName={currentTest.shortName}
-                unit={currentTest.unit}
-                onFinish={(val) => handleSaveScore(val)}
-              />
-            )}
-
-            {currentTest.timerMode === 'stopwatch' && (
-              <StopwatchTimer
-                key={`${currentTestId}-${currentParticipant.id}`}
-                testName={currentTest.shortName}
-                maxSeconds={currentTest.maxSeconds}
-                direction={currentTest.direction}
-                onFinish={(val) => handleSaveScore(val)}
-              />
-            )}
-
-            {currentTest.timerMode === 'manual_scale' && currentTest.visualScaleOptions && (
-              <ManualScaleInput
-                key={`${currentTestId}-${currentParticipant.id}`}
-                testName={currentTest.shortName}
-                visualScaleOptions={currentTest.visualScaleOptions}
-                onFinish={(val) => handleSaveScore(val)}
-              />
-            )}
-          </div>
-
-          {/* LEY ANTI-TRAMPAS VISIBLE: Botón para omitir */}
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-            <button
-              type="button"
-              disabled={currentTestIndex === 0 && currentParticipantIndex === 0}
-              onClick={() => {
-                if (mode === 'family' && currentParticipantIndex > 0) {
-                  setCurrentParticipantIndex((prev) => prev - 1);
-                } else if (currentTestIndex > 0) {
-                  setCurrentTestIndex((prev) => prev - 1);
-                  if (mode === 'family') setCurrentParticipantIndex(participants.length - 1);
-                }
-              }}
-              className="min-h-[46px] px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 disabled:opacity-30"
-            >
-              <ChevronLeft className="h-4 w-4 inline mr-1" />
-              <span>Anterior</span>
-            </button>
-
-            {/* Botón Explícito de Ley Anti-Trampas */}
-            <button
-              type="button"
-              onClick={() => handleSaveScore(null)}
-              className="min-h-[46px] px-4 py-2 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 text-xs font-bold transition-colors"
-            >
-              <span>No realizada / Saltar (suma 0 pts)</span>
-            </button>
-          </div>
-        </section>
-      )}
+          </section>
+        );
+      })()}
 
       {/* Modal interactivo de LivingRoomKit */}
       {isKitModalOpen && (

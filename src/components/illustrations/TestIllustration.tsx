@@ -10,34 +10,40 @@ interface TestIllustrationProps {
 
 export function TestIllustration({ testId, className = '' }: TestIllustrationProps) {
   return (
-    <div className={`w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs ${className}`}>
-      <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-800">
+    <div className={`w-full overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-sm ${className}`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
         {/* Panel 1: Posición Inicial */}
-        <div className="p-3 sm:p-4 flex flex-col items-center">
+        <div className="p-3 sm:p-4 flex flex-col items-center relative">
           <div className="w-full flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">
+            <span className="text-[11px] font-bold tracking-wider uppercase text-slate-600">
               1. Posición Inicial
             </span>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
               Preparación
             </span>
           </div>
-          <div className="w-full aspect-[240/140] flex items-center justify-center bg-slate-50 dark:bg-slate-950/50 rounded-xl overflow-hidden p-1">
+          <div className="w-full aspect-[240/140] flex items-center justify-center bg-slate-50 rounded-xl overflow-hidden p-1 relative">
+            <span className="badge-provenance-tech absolute top-2 right-2 text-[9px] py-0.5 px-2">
+              Técnica
+            </span>
             {renderStartIllustration(testId)}
           </div>
         </div>
 
         {/* Panel 2: Movimiento y Posición Final */}
-        <div className="p-3 sm:p-4 flex flex-col items-center">
+        <div className="p-3 sm:p-4 flex flex-col items-center relative">
           <div className="w-full flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold tracking-wider uppercase text-sky-700 dark:text-sky-400">
+            <span className="text-[11px] font-bold tracking-wider uppercase text-blue-700">
               2. Movimiento / Fin
             </span>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-800">
               Ejecución
             </span>
           </div>
-          <div className="w-full aspect-[240/140] flex items-center justify-center bg-slate-50 dark:bg-slate-950/50 rounded-xl overflow-hidden p-1">
+          <div className="w-full aspect-[240/140] flex items-center justify-center bg-slate-50 rounded-xl overflow-hidden p-1 relative">
+            <span className="badge-provenance-tech absolute top-2 right-2 text-[9px] py-0.5 px-2">
+              Dinámica
+            </span>
             {renderFinishIllustration(testId)}
           </div>
         </div>

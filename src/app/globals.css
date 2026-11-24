@@ -1,8 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Tokens de Categorías (Los 6 Ejes de Capacidad Motriz) */
+  --cat-1: #2563EB; --cat-1-text: #1D4ED8; /* Tren Inferior */
+  --cat-2: #059669; --cat-2-text: #047857; /* Core y Superior */
+  --cat-3: #EA580C; --cat-3-text: #C2410C; /* Equilibrio */
+  --cat-4: #9333EA; --cat-4-text: #7E22CE; /* Movilidad */
+  --cat-5: #0891B2; --cat-5-text: #0E7490; /* Coordinación */
+  --cat-6: #DC2626; --cat-6-text: #B91C1C; /* Resistencia */
+
+  /* Colores de Marca y Fondos */
+  --acento: #FACC15;
+  --bg-dark: #0F172A; --surface-dark: #1E293B;
+  --bg-light: #F2F1EB; --surface-light: #FFFFFF;
+  --text-on-color: #FFFFFF; --text-dark: #0F172A;
+  --text-muted-dark-bg: #CBD5E1;
+  --radius-card: 20px; --radius-pill: 999px;
+
+  --background: #F2F1EB;
+  --foreground: #0F172A;
 }
 
 @theme inline {
@@ -10,17 +26,70 @@
   --color-foreground: var(--foreground);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background-color: #F2F1EB;
+  color: #0F172A;
+  font-family: 'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+/* Tipografía de cartel deportivo Noto Sans Black (900) en itálica y mayúsculas */
+.poster-title {
+  font-family: 'Noto Sans', system-ui, sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.poster-title-stroke {
+  text-shadow:
+    -1.5px -1.5px 0 #0F172A,
+     1.5px -1.5px 0 #0F172A,
+    -1.5px  1.5px 0 #0F172A,
+     1.5px  1.5px 0 #0F172A,
+     0px  3px 8px rgba(15, 23, 42, 0.4);
+}
+
+/* Píldoras de procedencia de imágenes y láminas */
+.badge-provenance-tech {
+  background-color: #0F766E;
+  color: #FFFFFF;
+}
+
+.badge-provenance-ai {
+  background-color: #FFFFFF;
+  color: #0F172A;
+}
+
+.badge-provenance-photo {
+  background-color: #DC2626;
+  color: #FFFFFF;
+}
+
+/* Píldora de nota sobrepuesta */
+.pill-note {
+  background-color: rgba(0, 0, 0, 0.72);
+  color: #FFFFFF;
+  backdrop-filter: blur(4px);
+}
+
+/* Sombras suaves y microinteracciones */
+.card-sport-shadow {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.card-sport-dark-shadow {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.btn-press {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
+}
+
+.btn-press:active {
+  transform: scale(0.97);
 }
 
 /* Reglas de Impresión A4 de Alto Rendimiento */

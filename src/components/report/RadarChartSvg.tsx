@@ -2,11 +2,12 @@
 
 import React from 'react';
 import { AxisId } from '../../types/radar-motor';
+import { CATEGORY_THEMES } from '../../data/category-theme';
 
 export interface RadarSeries {
   label: string;
   scores: Partial<Record<AxisId, number>>;
-  color?: string; // Tailwind or hex
+  color?: string;
   isComparison?: boolean;
 }
 
@@ -15,29 +16,32 @@ interface RadarChartSvgProps {
   comparisonSeries?: RadarSeries | null;
   size?: number; // default viewBox 420x380
   className?: string;
+  themeVariant?: 'light' | 'map_dark';
 }
 
 interface AxisConfig {
   id: AxisId;
   label: string;
   shortLabel: string;
-  angleDeg: number; // 0 is top (-90 in math)
+  angleDeg: number;
 }
 
 const RADAR_AXES: AxisConfig[] = [
-  { id: 'lower_body_strength', label: 'Tren Inferior', shortLabel: 'Tren Inf.', angleDeg: -90 },
-  { id: 'core_upper_strength', label: 'Core y Superior', shortLabel: 'Core / Sup.', angleDeg: -30 },
-  { id: 'balance_posture', label: 'Equilibrio', shortLabel: 'Equilibrio', angleDeg: 30 },
-  { id: 'mobility_flexibility', label: 'Movilidad', shortLabel: 'Movilidad', angleDeg: 90 },
-  { id: 'coordination_agility', label: 'Agilidad', shortLabel: 'Agilidad', angleDeg: 150 },
-  { id: 'aerobic_stability', label: 'Resistencia', shortLabel: 'Resistencia', angleDeg: 210 },
+  { id: 'lower_body_strength', label: 'Tren Inferior', shortLabel: '1 · Tren Inf.', angleDeg: -90 },
+  { id: 'core_upper_strength', label: 'Core y Superior', shortLabel: '2 · Core/Sup.', angleDeg: -30 },
+  { id: 'balance_posture', label: 'Equilibrio', shortLabel: '3 · Equilibrio', angleDeg: 30 },
+  { id: 'mobility_flexibility', label: 'Movilidad', shortLabel: '4 · Movilidad', angleDeg: 90 },
+  { id: 'coordination_agility', label: 'Agilidad', shortLabel: '5 · Agilidad', angleDeg: 150 },
+  { id: 'aerobic_stability', label: 'Resistencia', shortLabel: '6 · Resistencia', angleDeg: 210 },
 ];
 
 export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
   primarySeries,
   comparisonSeries,
   className = '',
+  themeVariant = 'light',
 }) => {
+  const isDark = themeVariant === 'map_dark';
   const cx = 210;
   const cy = 185;
   const maxRadius = 120;
@@ -93,15 +97,15 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
       >
         <defs>
           {/* Gradiente para la serie principal */}
-          <linearGradient id="primaryRadarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="#6366f1" stopOpacity="0.2" />
+          <linearGradient id="primaryRadarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#2563EB" stopOpacity={isDark ? '0.55' : '0.40'} />
+            <stop offset="100%" stopColor="#0891B2" stopOpacity={isDark ? '0.35' : '0.20'} />
           </linearGradient>
 
           {/* Gradiente para serie de comparación */}
-          <linearGradient id="compRadarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#d97706" stopOpacity="0.15" />
+          <linearGradient id="compRadarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#EA580C" stopOpacity="0.45" />
+            <stop offset="100%" stopColor="#FACC15" stopOpacity="0.25" />
           </linearGradient>
         </defs>
 
@@ -110,7 +114,7 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
           <polygon
             key={`grid-${level}`}
             points={getHexagonPoints(level)}
-            className="stroke-slate-200 fill-transparent"
+            className={isDark ? 'stroke-slate-700/80 fill-transparent' : 'stroke-stone-300 fill-transparent'}
             strokeWidth="1"
             strokeDasharray={level < 1.0 ? '3 3' : 'none'}
           />
@@ -119,18 +123,19 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
         {/* 2. Sombra de la Zona Saludable Motriz (ZSM 45–75%) */}
         <polygon
           points={zsmOuterPoints}
-          className="fill-emerald-100/50 stroke-emerald-300"
-          strokeWidth="1"
+          className={isDark ? 'fill-emerald-500/15 stroke-emerald-400/50' : 'fill-emerald-50 stroke-emerald-300'}
+          strokeWidth="1.2"
           strokeDasharray="4 4"
         />
         <polygon
           points={zsmInnerPoints}
-          className="fill-white stroke-emerald-200"
+          className={isDark ? 'fill-[#1E293B] stroke-emerald-500/40' : 'fill-white stroke-emerald-200'}
           strokeWidth="1"
         />
 
-        {/* 3. Ejes radiales (del centro al vértice exterior) */}
+        {/* 3. Ejes radiales (del centro al vértice exterior) con color de categoría */}
         {RADAR_AXES.map((axis) => {
+          const theme = CATEGORY_THEMES[axis.id];
           const { x, y } = polarToCartesian(axis.angleDeg, maxRadius);
           return (
             <line
@@ -139,8 +144,8 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
               y1={cy}
               x2={x}
               y2={y}
-              className="stroke-slate-200"
-              strokeWidth="1.2"
+              stroke={isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(15, 23, 42, 0.12)'}
+              strokeWidth="1.5"
             />
           );
         })}
@@ -150,8 +155,8 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
           <>
             <polygon
               points={comparisonPolygon}
-              fill="url(#compRadarGradient)"
-              className="stroke-amber-500"
+              fill="url(#compRadarGrad)"
+              className="stroke-[#EA580C]"
               strokeWidth="2.5"
               strokeDasharray="4 3"
             />
@@ -161,7 +166,7 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
                 cx={p.x}
                 cy={p.y}
                 r="3.5"
-                className="fill-amber-500 stroke-white"
+                className="fill-[#EA580C] stroke-white"
                 strokeWidth="1.5"
               />
             ))}
@@ -171,58 +176,52 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
         {/* 5. Polígono de la serie principal */}
         <polygon
           points={primaryPolygon}
-          fill="url(#primaryRadarGradient)"
-          className="stroke-blue-600"
+          fill="url(#primaryRadarGrad)"
+          stroke="#2563EB"
           strokeWidth="2.5"
         />
         {primaryPoints.map((p) => {
-          const inZsm = p.val >= 45 && p.val <= 75;
-          const aboveZsm = p.val > 75;
-          const dotColor = aboveZsm
-            ? 'fill-indigo-600'
-            : inZsm
-            ? 'fill-emerald-600'
-            : 'fill-blue-600';
-
+          const theme = CATEGORY_THEMES[p.axis.id];
           return (
             <g key={`primary-dot-${p.axis.id}`}>
               <circle
                 cx={p.x}
                 cy={p.y}
-                r="4.5"
-                className={`${dotColor} stroke-white shadow-sm`}
+                r="5"
+                fill={theme.color}
+                stroke="#FFFFFF"
                 strokeWidth="2"
               />
             </g>
           );
         })}
 
-        {/* 6. Etiquetas de los vértices (nombres y valores) */}
+        {/* 6. Etiquetas de los vértices (insignias cromáticas por categoría) */}
         {RADAR_AXES.map((axis) => {
-          // Desplazamos la etiqueta un poco más allá del radio exterior
-          const labelRadius = maxRadius + 26;
+          const theme = CATEGORY_THEMES[axis.id];
+          const labelRadius = maxRadius + 28;
           const { x, y } = polarToCartesian(axis.angleDeg, labelRadius);
           const score = primarySeries.scores[axis.id] ?? 0;
           const compScore = comparisonSeries?.scores[axis.id];
 
-          // Alineación de texto según posición horizontal
           let textAnchor: 'middle' | 'start' | 'end' = 'middle';
           let xOffset = 0;
           if (axis.angleDeg === -90 || axis.angleDeg === 90) {
             textAnchor = 'middle';
           } else if (axis.angleDeg > -90 && axis.angleDeg < 90) {
             textAnchor = 'start';
-            xOffset = 4;
+            xOffset = 6;
           } else {
             textAnchor = 'end';
-            xOffset = -4;
+            xOffset = -6;
           }
 
           return (
             <g key={`label-${axis.id}`} transform={`translate(${x + xOffset}, ${y})`}>
               <text
                 textAnchor={textAnchor}
-                className="text-[12px] font-bold fill-slate-800"
+                className="text-[12px] font-extrabold"
+                fill={isDark ? '#F8FAFC' : '#0F172A'}
                 dominantBaseline="central"
               >
                 {axis.shortLabel}
@@ -230,12 +229,13 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
               <text
                 y="15"
                 textAnchor={textAnchor}
-                className="text-[11px] font-extrabold fill-blue-700 tabular-nums"
+                className="text-[11px] font-extrabold tabular-nums"
+                fill={theme.colorText}
                 dominantBaseline="central"
               >
                 {Math.round(score)} pts
                 {compScore !== undefined && (
-                  <tspan className="fill-amber-600 font-semibold text-[10px]">
+                  <tspan fill={isDark ? '#FDE047' : '#EA580C'} fontWeight="bold" fontSize="10px">
                     {' '}
                     vs {Math.round(compScore)}
                   </tspan>
@@ -245,29 +245,29 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
           );
         })}
 
-        {/* Centro del radar */}
-        <circle cx={cx} cy={cy} r="2.5" className="fill-slate-400" />
+        {/* Centro del radar: Elemento central amarillo #FACC15 de la vista de mapa */}
+        <circle cx={cx} cy={cy} r="5" fill="#FACC15" stroke="#0F172A" strokeWidth="1.5" />
       </svg>
 
       {/* Leyenda interactiva */}
-      <div className="flex flex-wrap items-center justify-center gap-4 text-xs mt-1 text-slate-600">
+      <div className={`flex flex-wrap items-center justify-center gap-4 text-xs mt-2 ${isDark ? 'text-slate-300' : 'text-stone-600'}`}>
         <div className="flex items-center gap-1.5">
-          <span className="w-3.5 h-3.5 rounded-full bg-blue-600 border border-white shadow-xs" />
-          <span className="font-semibold text-slate-800">{primarySeries.label}</span>
+          <span className="w-3.5 h-3.5 rounded-full bg-[#2563EB] border border-white shadow-xs" />
+          <span className={`font-bold ${isDark ? 'text-white' : 'text-[#0F172A]'}`}>{primarySeries.label}</span>
         </div>
 
         {comparisonSeries && (
           <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded-full bg-amber-500 border border-white shadow-xs border-dashed" />
-            <span className="font-semibold text-amber-800">
+            <span className="w-3.5 h-3.5 rounded-full bg-[#EA580C] border border-white shadow-xs border-dashed" />
+            <span className="font-bold text-[#EA580C]">
               {comparisonSeries.label}
             </span>
           </div>
         )}
 
         <div className="flex items-center gap-1.5">
-          <span className="w-3.5 h-2 bg-emerald-200 border border-emerald-400 rounded-xs" />
-          <span className="text-slate-500">Zona Saludable (45–75 pts)</span>
+          <span className="w-3.5 h-2 bg-emerald-300 border border-emerald-500 rounded-xs" />
+          <span>Zona Saludable (45–75 pts)</span>
         </div>
       </div>
     </div>
