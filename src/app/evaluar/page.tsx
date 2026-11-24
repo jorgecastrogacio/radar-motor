@@ -78,13 +78,15 @@ function EvaluarContent() {
   useEffect(() => {
     const saved = loadActiveSession();
     if (saved && saved.participants.length > 0) {
+      const validTestIndex = Math.min(Math.max(0, saved.currentTestIndex || 0), testSequence.length - 1);
+      const validPartIndex = Math.min(Math.max(0, saved.currentParticipantIndex || 0), Math.max(0, saved.participants.length - 1));
       setSafetyStatus(saved.safetyStatus);
       setParticipants(saved.participants);
-      setCurrentTestIndex(saved.currentTestIndex);
-      setCurrentParticipantIndex(saved.currentParticipantIndex || 0);
+      setCurrentTestIndex(validTestIndex);
+      setCurrentParticipantIndex(validPartIndex);
       setStep(3); // Reanudar directamente en la ejecución
     }
-  }, []);
+  }, [testSequence.length]);
 
   // Guardar sesión activa ante cualquier cambio
   useEffect(() => {
@@ -135,9 +137,11 @@ function EvaluarContent() {
   };
 
   // Manejo de registro de marca en la prueba activa
-  const currentTestId = testSequence[currentTestIndex];
-  const currentTest = TESTS_CATALOG[currentTestId];
-  const currentParticipant = participants[currentParticipantIndex];
+  const safeTestIndex = Math.min(Math.max(0, currentTestIndex), Math.max(0, testSequence.length - 1));
+  const currentTestId = testSequence[safeTestIndex] || testSequence[0] || 'chair_stand_30s';
+  const currentTest = TESTS_CATALOG[currentTestId] || TESTS_CATALOG['chair_stand_30s'];
+  const safePartIndex = Math.min(Math.max(0, currentParticipantIndex), Math.max(0, participants.length - 1));
+  const currentParticipant = participants[safePartIndex] || participants[0];
 
   const handleSaveScore = (rawValue: number | null) => {
     setParticipants((prev) => {
@@ -352,8 +356,14 @@ function EvaluarContent() {
             </button>
             <button
               type="button"
-              onClick={() => setStep(3)}
-              className="min-h-[52px] px-8 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-all shadow-md flex items-center gap-2"
+              onClick={() => {
+                if (currentTestIndex >= testSequence.length) {
+                  setCurrentTestIndex(0);
+                  setCurrentParticipantIndex(0);
+                }
+                setStep(3);
+              }}
+              className="min-h-[52px] px-8 py-3 rounded-2xl bg-[#047857] hover:bg-[#059669] text-white font-bold text-base transition-all shadow-md flex items-center gap-2 btn-press"
             >
               <span>¡Empezar pruebas!</span>
               <ArrowRight className="h-5 w-5" />
@@ -365,8 +375,8 @@ function EvaluarContent() {
       {/* =========================================================================
           PASO 3: PANTALLA DE EJECUCIÓN (PRUEBA A PRUEBA) - SISTEMA DE CATEGORÍAS
       ========================================================================= */}
-      {step === 3 && (() => {
-        const theme = CATEGORY_THEMES[currentTest.axisId];
+      {step === 3 && currentTest && currentParticipant && (() => {
+        const theme = CATEGORY_THEMES[currentTest.axisId] || CATEGORY_THEMES['lower_body_strength'];
         return (
           <section className="space-y-6 animate-in fade-in duration-150">
             {/* Tarjeta de Categoría Oficial (Bloque 3/5) */}
