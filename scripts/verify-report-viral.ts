@@ -142,6 +142,18 @@ const recs = getRecommendedMicroChallenges(lowerReport, 2);
 assert(recs.length === 2, 'getRecommendedMicroChallenges debe devolver 2 micro-retos recomendados');
 assert(recs[0].id !== recs[1].id, 'Los dos micro-retos no deben ser repetidos');
 
+// Comprobación con puntuación flotante típica de modo exprés (ej. 73.5)
+const expressFloatReport: any = {
+  ...lowerReport,
+  mode: 'express',
+  globalScore: 73.5,
+  globalAverage: 24.5,
+};
+const recsFloat = getRecommendedMicroChallenges(expressFloatReport, 2);
+assert(recsFloat.length === 2, 'getRecommendedMicroChallenges con globalScore flotante debe devolver 2 micro-retos');
+assert(recsFloat[0] !== undefined && recsFloat[1] !== undefined, 'Ningún micro-reto devuelto debe ser undefined');
+assert(typeof recsFloat[0].durationMinutes === 'number', 'durationMinutes debe ser número');
+
 // 4. VERIFICACIÓN DE CODEC DE RETO BASE64 URL-SAFE
 console.log('4. Verificando codec de retos URL-safe con caracteres UTF-8 en español...');
 

@@ -256,13 +256,17 @@ export function getRecommendedMicroChallenges(
   const selected: MicroChallenge[] = [];
 
   // Buscar primer reto para el primer eje
+  const scoreInt = Math.floor(Math.abs(report?.globalScore || 0));
   for (const axisId of targetAxes) {
     if (selected.length >= count) break;
     const candidates = MICRO_CHALLENGES.filter((c) => c.axisId === axisId);
     if (candidates.length > 0) {
-      // Tomamos el primero o rotamos según edad/globalScore
-      const index = Math.abs(report.globalScore) % candidates.length;
-      selected.push(candidates[index]);
+      // Tomamos el primero o rotamos según edad/globalScore (entero)
+      const index = scoreInt % candidates.length;
+      const picked = candidates[index] || candidates[0];
+      if (picked && !selected.some((s) => s.id === picked.id)) {
+        selected.push(picked);
+      }
     }
   }
 
@@ -270,11 +274,11 @@ export function getRecommendedMicroChallenges(
   if (selected.length < count) {
     for (const challenge of MICRO_CHALLENGES) {
       if (selected.length >= count) break;
-      if (!selected.some((s) => s.id === challenge.id)) {
+      if (challenge && !selected.some((s) => s.id === challenge.id)) {
         selected.push(challenge);
       }
     }
   }
 
-  return selected.slice(0, count);
+  return selected.filter((item): item is MicroChallenge => Boolean(item)).slice(0, count);
 }

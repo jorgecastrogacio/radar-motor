@@ -459,14 +459,14 @@ function InformeContent() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {microChallenges.map((mc, idx) => (
+          {microChallenges.filter(Boolean).map((mc, idx) => (
             <div
-              key={mc.id}
+              key={mc.id || `mc-${idx}`}
               className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3 shadow-xs"
             >
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full">
-                  Reto #{idx + 1} · {mc.durationMinutes} min/día
+                  Reto #{idx + 1} · {mc.durationMinutes || 2} min/día
                 </span>
                 <span className="text-xs text-slate-500 font-medium">{mc.frequency}</span>
               </div>
