@@ -83,7 +83,7 @@ export const MICRO_CHALLENGES: MicroChallenge[] = [
     description:
       'Fortalece el transverso abdominal y los erectores espinales sin impacto articular.',
     instruction:
-      'Apóyate sobre antebrazos y rodillas en el suelo (o sobre una mesa firme de pie si prefieres). Mantén la columna alineada durante 20 segundos.',
+      'Apóyate sobre antebrazos y rodillas en el suelo (o sobre una mesa firme de pie si prefieres). Mantén la columna alineada durante 20 segundos con respiración fluida y continua, sin contener el aire en ningún momento.',
     homeTip: 'Imagina que quieres meter el ombligo hacia dentro para sostener la pelvis neutra.',
     frequency: '3 repeticiones de 20s con pausa intermedia',
   },
