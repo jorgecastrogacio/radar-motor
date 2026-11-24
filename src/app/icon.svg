@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="50%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="polyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0.7" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Fondo redondeado suave tipo app icon -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Cuadrícula concéntrica hexagonal del radar -->
+  <!-- Nivel 100% -->
+  <polygon points="256,76 412,166 412,346 256,436 100,346 100,166" fill="none" stroke="#334155" stroke-width="4" stroke-opacity="0.8" />
+  <!-- Nivel 75% (Zona Saludable) -->
+  <polygon points="256,121 373,188 373,323 256,391 139,323 139,188" fill="#10b981" fill-opacity="0.08" stroke="#10b981" stroke-width="3" stroke-dasharray="6 6" stroke-opacity="0.6" />
+  <!-- Nivel 50% -->
+  <polygon points="256,166 334,211 334,301 256,346 178,301 178,211" fill="none" stroke="#475569" stroke-width="3" stroke-dasharray="4 4" stroke-opacity="0.6" />
+  <!-- Nivel 25% -->
+  <polygon points="256,211 295,233 295,278 256,301 217,278 217,233" fill="none" stroke="#334155" stroke-width="2" stroke-opacity="0.5" />
+
+  <!-- Ejes radiales -->
+  <line x1="256" y1="256" x2="256" y2="76" stroke="#475569" stroke-width="3" stroke-opacity="0.7" />
+  <line x1="256" y1="256" x2="412" y2="166" stroke="#475569" stroke-width="3" stroke-opacity="0.7" />
+  <line x1="256" y1="256" x2="412" y2="346" stroke="#475569" stroke-width="3" stroke-opacity="0.7" />
+  <line x1="256" y1="256" x2="256" y2="436" stroke="#475569" stroke-width="3" stroke-opacity="0.7" />
+  <line x1="256" y1="256" x2="100" y2="346" stroke="#475569" stroke-width="3" stroke-opacity="0.7" />
+  <line x1="256" y1="256" x2="100" y2="166" stroke="#475569" stroke-width="3" stroke-opacity="0.7" />
+
+  <!-- Polígono activo de la huella motriz -->
+  <polygon points="256,108 385,180 340,315 256,380 150,310 120,185" fill="url(#polyGrad)" stroke="#60a5fa" stroke-width="8" stroke-linejoin="round" filter="url(#glow)" />
+
+  <!-- Vértices del polígono -->
+  <circle cx="256" cy="108" r="10" fill="#ffffff" stroke="#2563eb" stroke-width="4" />
+  <circle cx="385" cy="180" r="10" fill="#ffffff" stroke="#2563eb" stroke-width="4" />
+  <circle cx="340" cy="315" r="10" fill="#ffffff" stroke="#10b981" stroke-width="4" />
+  <circle cx="256" cy="380" r="10" fill="#ffffff" stroke="#10b981" stroke-width="4" />
+  <circle cx="150" cy="310" r="10" fill="#ffffff" stroke="#10b981" stroke-width="4" />
+  <circle cx="120" cy="185" r="10" fill="#ffffff" stroke="#2563eb" stroke-width="4" />
+
+  <!-- Centro del radar -->
+  <circle cx="256" cy="256" r="6" fill="#38bdf8" />
+</svg>

@@ -108,13 +108,21 @@ function InformeContent() {
             Completa tu autoevaluación motriz (Reto Exprés o Chequeo Completo) para generar tu mapa funcional de salud.
           </p>
         </div>
-        <Link
-          href="/evaluar"
-          className="inline-flex items-center gap-2 min-h-[48px] px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm transition-all"
-        >
-          <span>Comenzar evaluación ahora</span>
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link
+            href="/evaluar"
+            className="inline-flex items-center gap-2 min-h-[48px] px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm transition-all"
+          >
+            <span>Comenzar evaluación ahora</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 min-h-[48px] px-6 py-3 rounded-2xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-sm transition-all"
+          >
+            <span>Volver a la portada</span>
+          </Link>
+        </div>
       </main>
     );
   }
@@ -212,7 +220,7 @@ function InformeContent() {
     <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:py-12 space-y-10">
       {/* Banner de Desafío Recibido (?reto=...) */}
       {challengeData && (
-        <div className="rounded-3xl border-2 border-amber-400 bg-amber-50/80 p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="rounded-3xl border-2 border-amber-400 bg-amber-50/80 p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:hidden">
           <div className="flex items-center gap-3.5">
             <div className="p-2.5 rounded-2xl bg-amber-200 text-amber-900 shrink-0">
               <Sparkles className="h-6 w-6" />
@@ -238,7 +246,7 @@ function InformeContent() {
 
       {/* Selector de Miembros Familiares si es Modo Familia */}
       {isFamily && savedData.items.length > 1 && (
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2 print:hidden">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
             Participantes evaluados ({savedData.items.length}):
           </span>
@@ -266,7 +274,7 @@ function InformeContent() {
       )}
 
       {/* Cabecera del Arquetipo Motor */}
-      <section className="rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 space-y-6 shadow-md relative overflow-hidden">
+      <section className="rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 space-y-6 shadow-md relative overflow-hidden print:hidden">
         <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-sky-300">
@@ -315,7 +323,7 @@ function InformeContent() {
       </section>
 
       {/* Gráfico Radar Interactivo de 6 Ejes con Selector de Comparación */}
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-6 shadow-xs">
+      <section className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-6 shadow-xs print:hidden">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -373,7 +381,7 @@ function InformeContent() {
       </section>
 
       {/* Barra de Herramientas de Compartición y Viralidad */}
-      <section className="rounded-3xl border border-slate-200 bg-slate-50 p-6 space-y-4 shadow-xs">
+      <section className="rounded-3xl border border-slate-200 bg-slate-50 p-6 space-y-4 shadow-xs print:hidden">
         <div>
           <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
             <Share2 className="h-4 w-4 text-blue-600" />
@@ -439,7 +447,7 @@ function InformeContent() {
       </section>
 
       {/* Los 2 Micro-Retos Domésticos Recomendados */}
-      <section className="space-y-4">
+      <section className="space-y-4 print:hidden">
         <div>
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
             <Zap className="h-5 w-5 text-amber-500" />
@@ -482,7 +490,7 @@ function InformeContent() {
       </section>
 
       {/* Desglose Detallado por los 6 Ejes */}
-      <section className="space-y-4">
+      <section className="space-y-4 print:hidden">
         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
           <Activity className="h-5 w-5 text-blue-600" />
           <span>Desglose por Ejes y Pruebas Realizadas</span>
@@ -564,7 +572,7 @@ function InformeContent() {
 
       {/* Llamada a la Acción si se hizo solo Exprés */}
       {isExpress && (
-        <section className="rounded-3xl border border-indigo-200 bg-indigo-50/70 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <section className="rounded-3xl border border-indigo-200 bg-indigo-50/70 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 print:hidden">
           <div className="space-y-1 text-center sm:text-left">
             <h3 className="text-base font-bold text-indigo-950">
               ¿Quieres descubrir tu perfil motor completo en los 6 ejes?
@@ -584,7 +592,7 @@ function InformeContent() {
       )}
 
       {/* Pasaporte Familiar Imprimible (A4) */}
-      <section className="pt-4 border-t border-slate-200">
+      <section className="pt-4 border-t border-slate-200 print:pt-0 print:border-none print:block">
         <FamilyPassportPrint
           participants={savedData.items.map((it) => ({
             alias: it.participant.alias,
