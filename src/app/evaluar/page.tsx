@@ -75,19 +75,26 @@ function EvaluarContent() {
   const [currentTestIndex, setCurrentTestIndex] = useState(0);
   const [currentParticipantIndex, setCurrentParticipantIndex] = useState(0);
 
-  // Cargar sesión guardada si existe
+  // Redirigir a /aula si se solicita ?mode=aula
+  useEffect(() => {
+    if (modeParam === 'aula') {
+      router.replace('/aula');
+    }
+  }, [modeParam, router]);
+
+  // Cargar sesión guardada si existe y coincide con el modo actual
   useEffect(() => {
     const saved = loadActiveSession();
-    if (saved && saved.participants.length > 0) {
+    if (saved && saved.mode === mode && saved.participants.length > 0) {
       const validTestIndex = Math.min(Math.max(0, saved.currentTestIndex || 0), testSequence.length - 1);
       const validPartIndex = Math.min(Math.max(0, saved.currentParticipantIndex || 0), Math.max(0, saved.participants.length - 1));
       setSafetyStatus(saved.safetyStatus);
       setParticipants(saved.participants);
       setCurrentTestIndex(validTestIndex);
       setCurrentParticipantIndex(validPartIndex);
-      setStep(3); // Reanudar directamente en la ejecución
+      setStep(3); // Reanudar directamente en la ejecución si es el mismo modo
     }
-  }, [testSequence.length]);
+  }, [mode, testSequence.length]);
 
   // Guardar sesión activa ante cualquier cambio
   useEffect(() => {
@@ -196,6 +203,14 @@ function EvaluarContent() {
       : '/informe';
     router.push(targetUrl);
   };
+
+  if (modeParam === 'aula') {
+    return (
+      <div className="flex-1 max-w-md mx-auto p-12 text-center text-slate-500 text-sm">
+        Redirigiendo al Modo Aula (/aula)...
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 space-y-8">
