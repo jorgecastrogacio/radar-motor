@@ -3,6 +3,7 @@
 import React from 'react';
 import { EvaluationReport } from '../../types/radar-motor';
 import { determineArchetype } from '../../data/archetypes';
+import { ALL_AXIS_IDS } from '../../data/tests-catalog';
 import { Printer } from 'lucide-react';
 
 export interface ParticipantReportEntry {

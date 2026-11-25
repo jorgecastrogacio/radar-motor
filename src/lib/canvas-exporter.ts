@@ -1,5 +1,6 @@
 import { AxisId, EvaluationReport } from '../types/radar-motor';
 import { determineArchetype } from '../data/archetypes';
+import { ALL_AXIS_IDS } from '../data/tests-catalog';
 
 export type CardFormat = 'square' | 'story';
 
