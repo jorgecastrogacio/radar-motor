@@ -231,7 +231,7 @@ function InformeContent() {
                 Desafío Recibido de {challengeData.alias} ({challengeData.age} años)
               </p>
               <p className="text-xs text-amber-800">
-                Puntuación del rival: <strong className="tabular-nums">{challengeData.globalScore} pts</strong> · Superpuesto en tu gráfico de radar.
+                Puntuación del rival: <strong className="tabular-nums">{challengeData.globalAverage !== undefined ? `${challengeData.globalAverage} pts (/ 100)` : `${challengeData.globalScore} pts`}</strong> · Superpuesto en tu gráfico de radar.
               </p>
             </div>
           </div>
@@ -292,11 +292,11 @@ function InformeContent() {
 
           <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-4 text-center sm:text-right shrink-0">
             <span className="text-[11px] uppercase tracking-wider text-slate-300 block">
-              Puntuación Global
+              Puntuación Media
             </span>
             <div className="flex items-baseline justify-center sm:justify-end gap-1">
               <span className="text-4xl font-mono font-black text-sky-400 tabular-nums">
-                {Math.round(report.globalScore)}
+                {Math.round(report.globalAverage)}
               </span>
               <span className="text-xs text-slate-400">/ 100</span>
             </div>

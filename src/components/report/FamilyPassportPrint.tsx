@@ -93,9 +93,9 @@ export const FamilyPassportPrint: React.FC<FamilyPassportPrintProps> = ({
                 </p>
                 <div className="mt-1.5 flex items-baseline justify-center gap-1">
                   <span className="text-xl font-extrabold text-blue-600 tabular-nums">
-                    {Math.round(p.report.globalScore)}
+                    {Math.round(p.report.globalAverage)}
                   </span>
-                  <span className="text-[10px] text-slate-500">/100</span>
+                  <span className="text-[10px] text-slate-500">/100 (media)</span>
                 </div>
                 <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 truncate max-w-full">
                   {archetype.name}

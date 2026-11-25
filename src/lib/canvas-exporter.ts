@@ -89,15 +89,15 @@ export function createRadarCardCanvas(
     262
   );
 
-  // Puntuación Global a la derecha
+  // Puntuación Media a la derecha
   ctx.textAlign = 'right';
   ctx.fillStyle = '#38bdf8';
   ctx.font = '800 68px system-ui, -apple-system, sans-serif';
-  ctx.fillText(`${Math.round(report.globalScore)}`, width - 105, 235);
+  ctx.fillText(`${Math.round(report.globalAverage)}`, width - 105, 235);
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '600 20px system-ui, -apple-system, sans-serif';
-  ctx.fillText('/ 100 PUNTOS GLOBALES', width - 105, 268);
+  ctx.fillText('/ 100 PUNTOS (MEDIA)', width - 105, 268);
 
   // 3. Arquetipo Motor
   const archetypeY = isStory ? 330 : 320;
@@ -335,8 +335,8 @@ export async function shareRadarCardPNG(
         { type: 'image/png' }
       );
 
-      const title = `Mi Radar Motor (${Math.round(report.globalScore)} pts)`;
-      const text = `¡He completado mi autoevaluación en RADAR MOTOR! Puntuación: ${Math.round(report.globalScore)}/100. ¿Cuál es tu arquetipo?`;
+      const title = `Mi Radar Motor (${Math.round(report.globalAverage)} pts)`;
+      const text = `¡He completado mi autoevaluación en RADAR MOTOR! Puntuación media: ${Math.round(report.globalAverage)}/100. ¿Cuál es tu arquetipo?`;
 
       if (
         navigator.share &&

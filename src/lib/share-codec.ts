@@ -2,11 +2,13 @@ import { AgeBracket, AxisId, EvaluationReport, Sex } from '../types/radar-motor'
 import { determineArchetype } from '../data/archetypes';
 
 export interface ChallengePayload {
+  v?: number; // Versión de formato de reto (v2 añade globalAverage explícito)
   alias: string;
   age: number;
   ageBracket: AgeBracket;
   sex: Sex;
   globalScore: number;
+  globalAverage?: number;
   archetypeId: string;
   axisScores: Partial<Record<AxisId, number>>;
   date: string;
@@ -100,11 +102,13 @@ export function createChallengePayloadFromReport(
   const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   return {
+    v: 2,
     alias,
     age: report.age,
     ageBracket: report.ageBracket,
     sex: report.sex,
     globalScore: Math.round(report.globalScore),
+    globalAverage: Math.round(report.globalAverage),
     archetypeId: archetype.id,
     axisScores,
     date: dateStr,
