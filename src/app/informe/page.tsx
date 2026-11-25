@@ -606,9 +606,15 @@ function InformeContent() {
           </p>
         )}
 
-        <div className="pt-2 border-t border-slate-200/80 text-[11px] text-slate-500 space-y-1">
+        <div className="pt-2 border-t border-slate-200/80 text-[11px] text-slate-500 space-y-1.5">
+          <p className="font-semibold text-slate-700">
+            🔒 <strong>Aviso de Privacidad y Contenido del Enlace de Reto:</strong>
+          </p>
           <p>
-            🔒 <strong>Aviso de Privacidad del Reto:</strong> El enlace de reto contiene únicamente tu alias, edad, puntuación media y resultados de las pruebas para que tu contrincante pueda superponer su radar al tuyo. No incluye datos de contacto ni identificadores personales.
+            Al generar el enlace de reto, los siguientes datos se codifican en la dirección URL: <strong>alias</strong>, <strong>edad</strong>, <strong>puntuación media global</strong>, <strong>puntuaciones por eje evaluado</strong>, <strong>identificador de arquetipo</strong> y <strong>modo de evaluación</strong>.
+          </p>
+          <p className="text-amber-800 bg-amber-50 p-2 rounded-lg border border-amber-200">
+            ⚠️ <strong>Importante:</strong> La codificación Base64 en la URL no constituye un cifrado; cualquier persona que reciba o intercepte el enlace puede decodificar y visualizar los datos anteriores. Se recomienda encarecidamente no utilizar nombres reales ni apellidos de menores como alias.
           </p>
         </div>
       </section>

@@ -2,16 +2,18 @@ import { AgeBracket, AxisId, EvaluationReport, Sex } from '../types/radar-motor'
 import { determineArchetype } from '../data/archetypes';
 
 export interface ChallengePayload {
-  v?: number; // Versión de formato de reto (v2 añade globalAverage explícito)
+  v?: number; // Versión de formato de reto (v2 minimizado)
+  mode?: 'express' | 'full'; // Modo de evaluación para preselección
   alias: string;
   age: number;
-  ageBracket: AgeBracket;
-  sex: Sex;
-  globalScore: number;
-  globalAverage?: number;
-  archetypeId: string;
+  globalAverage: number;
+  archetypeId?: string;
   axisScores: Partial<Record<AxisId, number>>;
-  date: string;
+  // Campos obsoletos conservados para decodificar enlaces v1 antiguos
+  ageBracket?: AgeBracket;
+  sex?: Sex;
+  globalScore?: number;
+  date?: string;
 }
 
 export interface HistoryEntry {
@@ -82,6 +84,7 @@ export function decodeChallengePayload(encoded: string): ChallengePayload | null
 
 /**
  * Construye el payload a partir de un EvaluationReport y alias.
+ * Minimización estricta: solo incluye campos utilizados por el receptor.
  */
 export function createChallengePayloadFromReport(
   report: EvaluationReport,
@@ -98,20 +101,14 @@ export function createChallengePayloadFromReport(
     }
   }
 
-  const now = new Date();
-  const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
   return {
     v: 2,
+    mode: report.mode === 'express' ? 'express' : 'full',
     alias,
     age: report.age,
-    ageBracket: report.ageBracket,
-    sex: report.sex,
-    globalScore: Math.round(report.globalScore),
     globalAverage: Math.round(report.globalAverage),
     archetypeId: archetype ? archetype.id : (report.mode === 'express' ? 'parcial' : 'sin_datos'),
     axisScores,
-    date: dateStr,
   };
 }
 
