@@ -104,13 +104,17 @@ export function CountdownTimer({
     setStatus('running');
   };
 
-  const handleReset = () => {
+  const handleResetTimer = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     setStatus('idle');
     setTimeLeft(durationSeconds);
-    setCounter(0);
     setPrepCount(3);
     halfwayNotifiedRef.current = false;
+    // Las repeticiones se conservan intactas para no perder el esfuerzo registrado
+  };
+
+  const handleResetCounter = () => {
+    setCounter(0);
   };
 
   const handleTap = () => {
@@ -199,44 +203,62 @@ export function CountdownTimer({
               type="button"
               onClick={() => handleManualIncrement(-1)}
               disabled={counter <= 0}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 disabled:opacity-30"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 disabled:opacity-30 cursor-pointer"
               aria-label="Restar una repetición"
             >
               <Minus className="h-4 w-4" />
             </button>
-            <span className="font-mono font-black text-xl text-slate-900 dark:text-white min-w-[36px] text-center tabular-nums">
-              {counter}
-            </span>
+            <input
+              type="number"
+              min="0"
+              max="999"
+              value={counter}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                setCounter(isNaN(val) ? 0 : Math.max(0, val));
+              }}
+              className="font-mono font-black text-xl text-slate-900 dark:text-white w-16 text-center tabular-nums bg-transparent border border-slate-200 dark:border-slate-700 rounded-xl py-1 focus:ring-2 focus:ring-sky-500 focus:outline-none"
+              aria-label={`Editar repeticiones en ${unit}`}
+            />
             <button
               type="button"
               onClick={() => handleManualIncrement(1)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 cursor-pointer"
               aria-label="Sumar una repetición"
             >
               <Plus className="h-4 w-4" />
             </button>
+            {counter > 0 && (
+              <button
+                type="button"
+                onClick={handleResetCounter}
+                className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 px-1 py-0.5 rounded cursor-pointer"
+                title="Poner a 0 las repeticiones"
+              >
+                (Poner a 0)
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Botón Gigante +1 (Ergonomía Senior: mínimo 64px de altura) */}
+        {/* Botón Gigante +1 (Ergonomía Senior: mínimo 64px de altura, siempre activo) */}
         <button
           type="button"
           onClick={handleTap}
-          disabled={status !== 'running' && status !== 'finished'}
-          className="w-full min-h-[64px] sm:min-h-[72px] px-6 py-4 rounded-3xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none text-white font-black text-2xl sm:text-3xl transition-all shadow-md flex items-center justify-center gap-3 focus:outline-none focus:ring-4 focus:ring-sky-300"
+          className="w-full min-h-[64px] sm:min-h-[72px] px-6 py-4 rounded-3xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 active:scale-[0.98] text-white font-black text-2xl sm:text-3xl transition-all shadow-md flex items-center justify-center gap-3 focus:outline-none focus:ring-4 focus:ring-sky-300 cursor-pointer"
         >
           <Plus className="h-8 w-8 stroke-[3]" />
           <span>¡CONTAR (+1)!</span>
         </button>
       </div>
 
-      {/* Controles de Estado (Iniciar, Pausar, Reiniciar, Guardar) */}
+      {/* Controles de Estado (Iniciar, Pausar, Reiniciar Tiempo, Guardar) */}
       <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-3">
         {status === 'idle' && (
           <button
             type="button"
             onClick={handleStart}
-            className="flex-1 min-h-[52px] px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-colors flex items-center justify-center gap-2 shadow-sm"
+            className="flex-1 min-h-[52px] px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer"
           >
             <Play className="h-5 w-5 fill-current" />
             <span>Iniciar Cuenta Atrás (3s)</span>
@@ -247,7 +269,7 @@ export function CountdownTimer({
           <button
             type="button"
             onClick={handlePause}
-            className="flex-1 min-h-[52px] px-6 py-3 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-base transition-colors flex items-center justify-center gap-2 shadow-sm"
+            className="flex-1 min-h-[52px] px-6 py-3 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-base transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer"
           >
             <Pause className="h-5 w-5 fill-current" />
             <span>Pausar</span>
@@ -258,32 +280,37 @@ export function CountdownTimer({
           <button
             type="button"
             onClick={handleResume}
-            className="flex-1 min-h-[52px] px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-colors flex items-center justify-center gap-2 shadow-sm"
+            className="flex-1 min-h-[52px] px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer"
           >
             <Play className="h-5 w-5 fill-current" />
             <span>Reanudar</span>
           </button>
         )}
 
-        {status === 'finished' && (
+        {/* Botón de Guardar accesible si terminó o si el usuario quiere confirmar sus repeticiones */}
+        {(status === 'finished' || counter > 0) && (
           <button
             type="button"
             onClick={() => onFinish(counter)}
-            className="flex-1 min-h-[52px] px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-colors flex items-center justify-center gap-2 shadow-md"
+            className={`flex-1 min-h-[52px] px-6 py-3 rounded-2xl font-bold text-base transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer ${
+              status === 'finished'
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                : 'bg-slate-900 hover:bg-slate-800 text-white'
+            }`}
           >
             <Check className="h-5 w-5 stroke-[3]" />
             <span>Guardar {counter} {unit}</span>
           </button>
         )}
 
-        {status !== 'idle' && status !== 'prep' && (
+        {status !== 'idle' && (
           <button
             type="button"
-            onClick={handleReset}
-            className="min-h-[52px] px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold"
+            onClick={handleResetTimer}
+            className="min-h-[52px] px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold cursor-pointer"
           >
             <RotateCcw className="h-4 w-4" />
-            <span>Reiniciar</span>
+            <span>Reiniciar Tiempo</span>
           </button>
         )}
 
@@ -291,7 +318,7 @@ export function CountdownTimer({
           <button
             type="button"
             onClick={onCancel}
-            className="min-h-[52px] px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-700 dark:text-slate-400 text-xs font-semibold"
+            className="min-h-[52px] px-4 py-3 rounded-2xl text-slate-500 hover:text-slate-700 dark:text-slate-400 text-xs font-semibold cursor-pointer"
           >
             Omitir prueba
           </button>
