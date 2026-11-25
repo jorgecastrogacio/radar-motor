@@ -41,7 +41,8 @@ import {
   HistoryEntry,
   saveReportToHistory,
 } from '../../lib/share-codec';
-import { downloadRadarCardPNG, shareRadarCardPNG } from '../../lib/canvas-exporter';
+import { evaluateFullReport } from '../../lib/scoring-engine';
+import { createRadarCardCanvas, downloadRadarCardPNG, shareRadarCardPNG } from '../../lib/canvas-exporter';
 
 function ArchetypeIcon({ name, className = 'h-6 w-6' }: { name: string; className?: string }) {
   switch (name) {
@@ -63,6 +64,57 @@ function ArchetypeIcon({ name, className = 'h-6 w-6' }: { name: string; classNam
     default:
       return <Compass className={className} />;
   }
+}
+
+function CanvasCardLivePreview({ report, alias }: { report: any; alias: string }) {
+  const squareCanvasRef = React.useRef<HTMLDivElement>(null);
+  const storyCanvasRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const sq = createRadarCardCanvas(report, 'square', alias);
+      sq.style.maxWidth = '100%';
+      sq.style.height = 'auto';
+      sq.className = 'rounded-2xl shadow-md border border-slate-700 w-full';
+      if (squareCanvasRef.current) {
+        squareCanvasRef.current.innerHTML = '';
+        squareCanvasRef.current.appendChild(sq);
+      }
+
+      const st = createRadarCardCanvas(report, 'story', alias);
+      st.style.maxWidth = '100%';
+      st.style.height = 'auto';
+      st.className = 'rounded-2xl shadow-md border border-slate-700 w-full';
+      if (storyCanvasRef.current) {
+        storyCanvasRef.current.innerHTML = '';
+        storyCanvasRef.current.appendChild(st);
+      }
+    } catch (e) {
+      console.error('Error rendering live canvas preview:', e);
+    }
+  }, [report, alias]);
+
+  return (
+    <div className="pt-4 border-t border-slate-200/80 space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+          Visualización de Tarjetas Gráficas (Canvas 2D)
+        </h4>
+        <span className="text-[11px] text-slate-500">100% generado en cliente</span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-slate-900/90 rounded-2xl p-3 space-y-2 text-center">
+          <span className="text-[11px] font-bold text-sky-400 block">Tarjeta Cuadrada 1:1 (WhatsApp)</span>
+          <div ref={squareCanvasRef} className="max-w-[320px] mx-auto overflow-hidden" />
+        </div>
+        <div className="bg-slate-900/90 rounded-2xl p-3 space-y-2 text-center">
+          <span className="text-[11px] font-bold text-indigo-400 block">Tarjeta Vertical 9:16 (Stories)</span>
+          <div ref={storyCanvasRef} className="max-w-[260px] mx-auto overflow-hidden" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function InformeContent() {
@@ -601,6 +653,9 @@ function InformeContent() {
             ⚠️ <strong>Importante:</strong> La codificación Base64 en la URL no constituye un cifrado; cualquier persona que reciba o intercepte el enlace puede decodificar y visualizar los datos anteriores. Se recomienda encarecidamente no utilizar nombres reales ni apellidos de menores como alias.
           </p>
         </div>
+
+        {/* Previsualización en vivo de tarjetas canvas en pantalla */}
+        {!hasNoData && <CanvasCardLivePreview report={report} alias={participant.alias} />}
       </section>
 
       {/* Los 2 Micro-Retos Domésticos Recomendados */}
