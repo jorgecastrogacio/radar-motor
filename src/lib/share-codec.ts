@@ -1,5 +1,7 @@
+import { useSyncExternalStore } from 'react';
 import { AgeBracket, AxisId, EvaluationReport, Sex } from '../types/radar-motor';
 import { determineArchetype } from '../data/archetypes';
+import { notifyStorageChange, subscribeStorage } from './session-store';
 
 export interface ChallengePayload {
   v?: number; // Versión de formato de reto (v2 minimizado)
@@ -271,6 +273,7 @@ export function saveReportToHistory(
     // Guardar hasta 10 entradas históricas más recientes
     const updated = [entry, ...existing.filter((e) => e.date !== entry.date)].slice(0, 10);
     localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(updated));
+    notifyStorageChange();
     return entry;
   } catch (err) {
     console.error('Error al guardar historial:', err);
@@ -292,10 +295,33 @@ export function getPersonalHistory(): HistoryEntry[] {
   }
 }
 
+let cachedHistoryRaw: string | null = null;
+let cachedHistory: HistoryEntry[] = [];
+const emptyHistoryServerSnapshot: HistoryEntry[] = [];
+
+export function getPersonalHistorySnapshot(): HistoryEntry[] {
+  if (typeof window === 'undefined') return emptyHistoryServerSnapshot;
+  const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+  if (raw !== cachedHistoryRaw) {
+    cachedHistoryRaw = raw;
+    try {
+      cachedHistory = raw ? (JSON.parse(raw) as HistoryEntry[]) : [];
+    } catch {
+      cachedHistory = [];
+    }
+  }
+  return cachedHistory;
+}
+
+export function usePersonalHistory(): HistoryEntry[] {
+  return useSyncExternalStore(subscribeStorage, getPersonalHistorySnapshot, () => emptyHistoryServerSnapshot);
+}
+
 /**
  * Limpia el historial personal.
  */
 export function clearPersonalHistory(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(HISTORY_STORAGE_KEY);
+  notifyStorageChange();
 }

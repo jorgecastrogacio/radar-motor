@@ -23,12 +23,11 @@ import { CATEGORY_THEMES } from '../../data/category-theme';
 import { Sex, TestId } from '../../types/radar-motor';
 import { evaluateFullReport, getAgeBracket } from '../../lib/scoring-engine';
 import {
-  ActiveSession,
   clearActiveSession,
-  loadActiveSession,
   Participant,
   saveActiveSession,
   saveLastReport,
+  useActiveSession,
 } from '../../lib/session-store';
 import { SafetyScreener } from '../../components/safety/SafetyScreener';
 import { LivingRoomKit } from '../../components/kit/LivingRoomKit';
@@ -83,18 +82,12 @@ function EvaluarContent() {
   }, [modeParam, router]);
 
   // Sesión previa guardada detectada (sin forzar salto a paso 3 ni descartar en silencio)
-  const [savedSession, setSavedSession] = useState<ActiveSession | null>(null);
+  const savedSessionRaw = useActiveSession();
+  const [discardedSession, setDiscardedSession] = useState(false);
   const [hasResolvedSavedPrompt, setHasResolvedSavedPrompt] = useState(false);
   const isEvaluationCompleted = useRef(false);
 
-  useEffect(() => {
-    const saved = loadActiveSession();
-    if (saved && saved.participants.length > 0) {
-      queueMicrotask(() => {
-        setSavedSession(saved);
-      });
-    }
-  }, []);
+  const savedSession = discardedSession ? null : savedSessionRaw;
 
   const handleResumeSavedSession = () => {
     if (!savedSession) return;
@@ -114,7 +107,7 @@ function EvaluarContent() {
 
   const handleDiscardSavedSession = () => {
     clearActiveSession();
-    setSavedSession(null);
+    setDiscardedSession(true);
     setHasResolvedSavedPrompt(true);
   };
 
@@ -279,7 +272,7 @@ function EvaluarContent() {
       )}
 
       {/* Diálogo de Elección de Sesión Activa Guardada */}
-      {savedSession && !hasResolvedSavedPrompt && (
+      {savedSession && !hasResolvedSavedPrompt && step !== 3 && (
         <div className="rounded-3xl border-2 border-indigo-300 bg-indigo-50/90 p-5 shadow-sm space-y-3 animate-in fade-in duration-150">
           <div className="flex items-start gap-3">
             <div className="p-2.5 rounded-2xl bg-indigo-200 text-indigo-950 shrink-0">
@@ -488,6 +481,7 @@ function EvaluarContent() {
                   setCurrentTestIndex(0);
                   setCurrentParticipantIndex(0);
                 }
+                setHasResolvedSavedPrompt(true);
                 setStep(3);
               }}
               className="min-h-[52px] px-8 py-3 rounded-2xl bg-[#047857] hover:bg-[#059669] text-white font-bold text-base transition-all shadow-md flex items-center gap-2 btn-press"

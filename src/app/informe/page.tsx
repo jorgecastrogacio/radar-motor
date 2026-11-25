@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { ALL_AXIS_IDS } from '../../data/tests-catalog';
 import { CATEGORY_THEMES } from '../../data/category-theme';
-import { loadLastReport, SavedReport } from '../../lib/session-store';
+import { SavedReport, useLastReport } from '../../lib/session-store';
 import { EvaluationReport } from '../../types/radar-motor';
 import { determineArchetype, MotorArchetype } from '../../data/archetypes';
 import { getRecommendedMicroChallenges, MicroChallenge } from '../../data/micro-challenges';
@@ -32,12 +32,10 @@ import { RadarChartSvg, RadarSeries } from '../../components/report/RadarChartSv
 import { FamilyPassportPrint } from '../../components/report/FamilyPassportPrint';
 import {
   buildChallengeUrl,
-  ChallengePayload,
   decodeChallengePayload,
   downloadNinetyDayReminderICS,
-  getPersonalHistory,
-  HistoryEntry,
   saveReportToHistory,
+  usePersonalHistory,
 } from '../../lib/share-codec';
 import { evaluateFullReport, isAxisEvaluated } from '../../lib/scoring-engine';
 import { createRadarCardCanvas, downloadRadarCardPNG, shareRadarCardPNG } from '../../lib/canvas-exporter';
@@ -119,38 +117,35 @@ function InformeContent() {
   const searchParams = useSearchParams();
   const challengeParam = searchParams.get('reto');
 
-  const [savedData, setSavedData] = useState<SavedReport | null>(null);
+  const savedData = useLastReport();
   const [selectedParticipantIdx, setSelectedParticipantIdx] = useState(0);
-  const [challengeData, setChallengeData] = useState<ChallengePayload | null>(null);
-  const [comparisonMode, setComparisonMode] = useState<string>('none');
+  const [userComparisonMode, setUserComparisonMode] = useState<string | null>(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
-  const [personalHistory, setPersonalHistory] = useState<HistoryEntry[]>([]);
-  const [comparisonHistory, setComparisonHistory] = useState<HistoryEntry[]>([]);
+  const personalHistory = usePersonalHistory();
   const [isExporting, setIsExporting] = useState(false);
 
+  const challengeData = React.useMemo(() => {
+    return challengeParam ? decodeChallengePayload(challengeParam) : null;
+  }, [challengeParam]);
+
+  const comparisonMode = userComparisonMode ?? (challengeData ? 'challenge' : 'none');
+  const setComparisonMode = (mode: string) => setUserComparisonMode(mode);
+
+  const comparisonHistory = React.useMemo(() => {
+    const currentTimestamp = savedData?.timestamp;
+    return personalHistory.filter((h) => {
+      if (currentTimestamp && h.date === currentTimestamp) return false;
+      return true;
+    });
+  }, [personalHistory, savedData]);
+
+  // Guardar informe en historial local de forma reactiva al montar o actualizar
   useEffect(() => {
-    const reportData = loadLastReport();
-    if (reportData && reportData.items.length > 0) {
-      const activeItem = reportData.items[0];
+    if (savedData && savedData.items.length > 0) {
+      const activeItem = savedData.items[0];
       saveReportToHistory(activeItem.report, activeItem.participant.alias);
     }
-    const now = Date.now();
-    const history = getPersonalHistory();
-    const validHistory = history.filter(
-      (h) => new Date(h.date).getTime() < now - 10000
-    );
-    const decoded = challengeParam ? decodeChallengePayload(challengeParam) : null;
-
-    queueMicrotask(() => {
-      setSavedData(reportData);
-      setPersonalHistory(history);
-      setComparisonHistory(validHistory);
-      if (decoded) {
-        setChallengeData(decoded);
-        setComparisonMode('challenge');
-      }
-    });
-  }, [challengeParam]);
+  }, [savedData]);
 
   const fallbackZeroData: SavedReport = {
     timestamp: '',
@@ -776,10 +771,14 @@ function InformeContent() {
                   />
                 </div>
 
-                {/* Mensaje de no evaluado en modo exprés */}
+                {/* Mensaje de no evaluado */}
                 {isUnmeasured && (
                   <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-500 italic">
-                    Eje no incluido en el Reto Exprés. Se evalúa en el Chequeo Completo.
+                    {ax.testResults && ax.testResults.length > 0
+                      ? 'Prueba omitida en esta evaluación (suma 0 pts).'
+                      : isExpress
+                      ? 'Eje no incluido en el Reto Exprés. Se evalúa en el Chequeo Completo.'
+                      : 'Eje sin pruebas registradas.'}
                   </div>
                 )}
 
@@ -820,7 +819,7 @@ function InformeContent() {
       </section>
 
       {/* Llamada a la Acción si se hizo solo Exprés */}
-      {isExpress && (
+      {isExpress && !hasNoData && (
         <section className="rounded-3xl border border-indigo-200 bg-indigo-50/70 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 print:hidden">
           <div className="space-y-1 text-center sm:text-left">
             <h3 className="text-base font-bold text-indigo-950">

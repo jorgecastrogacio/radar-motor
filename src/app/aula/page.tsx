@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -20,51 +20,46 @@ import {
   ClassroomStudent,
   clearClassroomSession,
   exportClassroomCSV,
-  loadClassroomSession,
   saveClassroomSession,
+  useClassroomSession,
 } from '../../lib/session-store';
 import { TestExecutionPanel } from '../../components/timers/TestExecutionPanel';
 
+const initialClassroomSession: ClassroomSession = {
+  groupLabel: '2º Primaria A',
+  defaultAge: 7,
+  testMode: 'express',
+  students: [
+    { id: 's1', alias: 'Alumno #01', age: 7, sex: 'M', inputs: {} },
+    { id: 's2', alias: 'Alumno #02', age: 7, sex: 'F', inputs: {} },
+    { id: 's3', alias: 'Alumno #03', age: 7, sex: 'M', inputs: {} },
+    { id: 's4', alias: 'Alumno #04', age: 7, sex: 'F', inputs: {} },
+    { id: 's5', alias: 'Alumno #05', age: 7, sex: 'M', inputs: {} },
+  ],
+  updatedAt: '',
+};
+
 function AulaContent() {
-  const [session, setSession] = useState<ClassroomSession>({
-    groupLabel: '2º Primaria A',
-    defaultAge: 7,
-    testMode: 'express',
-    students: [
-      { id: 's1', alias: 'Alumno #01', age: 7, sex: 'M', inputs: {} },
-      { id: 's2', alias: 'Alumno #02', age: 7, sex: 'F', inputs: {} },
-      { id: 's3', alias: 'Alumno #03', age: 7, sex: 'M', inputs: {} },
-      { id: 's4', alias: 'Alumno #04', age: 7, sex: 'F', inputs: {} },
-      { id: 's5', alias: 'Alumno #05', age: 7, sex: 'M', inputs: {} },
-    ],
-    updatedAt: '',
-  });
+  const savedSession = useClassroomSession();
+  const [localSession, setLocalSession] = useState<ClassroomSession | null>(null);
+
+  const session = localSession ?? (savedSession && savedSession.students.length > 0 ? savedSession : initialClassroomSession);
 
   const [activeTab, setActiveTab] = useState<'register' | 'summary'>('register');
   const [selectedTestId, setSelectedTestId] = useState<TestId>('sit_to_stand_5x');
   const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
 
-  // Cargar sesión guardada si existe
-  useEffect(() => {
-    const saved = loadClassroomSession();
-    if (saved && saved.students.length > 0) {
-      queueMicrotask(() => {
-        setSession(saved);
-      });
-    }
-  }, []);
-
   // Guardar ante cualquier cambio
   const updateSession = (newSession: ClassroomSession) => {
     const updated = { ...newSession, updatedAt: new Date().toISOString() };
-    setSession(updated);
+    setLocalSession(updated);
     saveClassroomSession(updated);
   };
 
   const handleClearSession = () => {
     if (confirm('¿Seguro que deseas borrar todos los datos del aula de este dispositivo? Esta acción es irreversible (se borran de este dispositivo).')) {
       clearClassroomSession();
-      setSession({
+      setLocalSession({
         groupLabel: 'Nuevo Grupo',
         defaultAge: 10,
         testMode: 'express',
@@ -439,7 +434,7 @@ function AulaContent() {
                               const val = e.target.value === '' ? null : Number(e.target.value);
                               handleUpdateStudentInput(st.id, val);
                             }}
-                            className="w-24 px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold text-sm tabular-nums focus:ring-2 focus:ring-sky-500"
+                            className="w-28 px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold text-sm tabular-nums focus:ring-2 focus:ring-sky-500"
                           />
                           <span className="text-xs text-slate-500">{currentTestDef.unit}</span>
                         </div>

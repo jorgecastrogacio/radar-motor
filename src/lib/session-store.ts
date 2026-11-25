@@ -1,5 +1,6 @@
 'use client';
 
+import { useSyncExternalStore } from 'react';
 import { EvaluationReport, Sex, TestId } from '../types/radar-motor';
 
 export interface Participant {
@@ -49,6 +50,103 @@ const ACTIVE_SESSION_KEY = 'radar_motor_active_session';
 const LAST_REPORT_KEY = 'radar_motor_last_report';
 const CLASSROOM_SESSION_KEY = 'radar_motor_classroom_session';
 
+export const STORAGE_CHANGE_EVENT = 'radar_motor_storage_change';
+
+export function notifyStorageChange(): void {
+  if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+    try {
+      window.dispatchEvent(new Event(STORAGE_CHANGE_EVENT));
+    } catch {
+      // Entornos de prueba o SSR sin Event completo
+    }
+  }
+}
+
+export function subscribeStorage(callback: () => void): () => void {
+  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return () => {};
+  try {
+    window.addEventListener('storage', callback);
+    window.addEventListener(STORAGE_CHANGE_EVENT, callback);
+  } catch {
+    // Si addEventListener falla en entorno simulado
+  }
+  return () => {
+    if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
+      try {
+        window.removeEventListener('storage', callback);
+        window.removeEventListener(STORAGE_CHANGE_EVENT, callback);
+      } catch {
+        // Ignorar
+      }
+    }
+  };
+}
+
+let cachedActiveSessionRaw: string | null = null;
+let cachedActiveSession: ActiveSession | null = null;
+
+export function getActiveSessionSnapshot(): ActiveSession | null {
+  if (typeof window === 'undefined') return null;
+  const raw = localStorage.getItem(ACTIVE_SESSION_KEY);
+  if (raw !== cachedActiveSessionRaw) {
+    cachedActiveSessionRaw = raw;
+    try {
+      cachedActiveSession = raw ? (JSON.parse(raw) as ActiveSession) : null;
+    } catch {
+      cachedActiveSession = null;
+    }
+  }
+  return cachedActiveSession;
+}
+
+let cachedLastReportRaw: string | null = null;
+let cachedLastReport: SavedReport | null = null;
+
+export function getLastReportSnapshot(): SavedReport | null {
+  if (typeof window === 'undefined') return null;
+  const raw = localStorage.getItem(LAST_REPORT_KEY);
+  if (raw !== cachedLastReportRaw) {
+    cachedLastReportRaw = raw;
+    try {
+      cachedLastReport = raw ? (JSON.parse(raw) as SavedReport) : null;
+    } catch {
+      cachedLastReport = null;
+    }
+  }
+  return cachedLastReport;
+}
+
+let cachedClassroomRaw: string | null = null;
+let cachedClassroom: ClassroomSession | null = null;
+
+export function getClassroomSessionSnapshot(): ClassroomSession | null {
+  if (typeof window === 'undefined') return null;
+  const raw = localStorage.getItem(CLASSROOM_SESSION_KEY);
+  if (raw !== cachedClassroomRaw) {
+    cachedClassroomRaw = raw;
+    try {
+      cachedClassroom = raw ? (JSON.parse(raw) as ClassroomSession) : null;
+    } catch {
+      cachedClassroom = null;
+    }
+  }
+  return cachedClassroom;
+}
+
+const getNullServerSnapshot = () => null;
+
+export function useActiveSession(): ActiveSession | null {
+  return useSyncExternalStore(subscribeStorage, getActiveSessionSnapshot, getNullServerSnapshot);
+}
+
+export function useLastReport(): SavedReport | null {
+  return useSyncExternalStore(subscribeStorage, getLastReportSnapshot, getNullServerSnapshot);
+}
+
+export function useClassroomSession(): ClassroomSession | null {
+  return useSyncExternalStore(subscribeStorage, getClassroomSessionSnapshot, getNullServerSnapshot);
+}
+
 // -----------------------------------------------------------------------------
 // Sesión Activa (Persistencia de progreso)
 // -----------------------------------------------------------------------------
@@ -56,6 +154,7 @@ export function saveActiveSession(session: ActiveSession): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify(session));
+    notifyStorageChange();
   } catch (e) {
     console.error('Error al guardar sesión activa en localStorage', e);
   }
@@ -77,6 +176,7 @@ export function clearActiveSession(): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(ACTIVE_SESSION_KEY);
+    notifyStorageChange();
   } catch (e) {
     console.error('Error al limpiar sesión activa de localStorage', e);
   }
@@ -89,6 +189,7 @@ export function saveLastReport(report: SavedReport): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(LAST_REPORT_KEY, JSON.stringify(report));
+    notifyStorageChange();
   } catch (e) {
     console.error('Error al guardar último informe en localStorage', e);
   }
@@ -110,6 +211,7 @@ export function clearLastReport(): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(LAST_REPORT_KEY);
+    notifyStorageChange();
   } catch (e) {
     console.error('Error al limpiar último informe de localStorage', e);
   }
@@ -122,6 +224,7 @@ export function saveClassroomSession(session: ClassroomSession): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(CLASSROOM_SESSION_KEY, JSON.stringify(session));
+    notifyStorageChange();
   } catch (e) {
     console.error('Error al guardar sesión de aula en localStorage', e);
   }
@@ -143,6 +246,7 @@ export function clearClassroomSession(): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(CLASSROOM_SESSION_KEY);
+    notifyStorageChange();
   } catch (e) {
     console.error('Error al limpiar sesión de aula de localStorage', e);
   }

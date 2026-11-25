@@ -20,39 +20,31 @@ interface SosModalProps {
 }
 
 export function SosModal({ isOpen, onClose }: SosModalProps) {
+  if (!isOpen) return null;
+  return <SosModalDialog onClose={onClose} />;
+}
+
+function SosModalDialog({ onClose }: { onClose: () => void }) {
   const [isUnlocked, setIsUnlocked] = useState(false);
 
   // Escuchar tecla Escape para accesibilidad
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape') {
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [onClose]);
 
   // Bloquear scroll de fondo cuando el modal esté abierto
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      const timer = setTimeout(() => {
-        setIsUnlocked(false); // Resetear estado de seguridad al abrir
-      }, 0);
-      return () => {
-        clearTimeout(timer);
-        document.body.style.overflow = 'unset';
-      };
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
+  }, []);
 
   return (
     <div

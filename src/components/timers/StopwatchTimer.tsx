@@ -45,18 +45,20 @@ export function StopwatchTimer({
   useEffect(() => {
     if (status !== 'prep') return;
 
-    if (prepCount > 0) {
+    if (prepCount > 1) {
       audioSynth.playPrepBeep();
       const timer = setTimeout(() => {
         setPrepCount((prev) => prev - 1);
       }, 1000);
       return () => clearTimeout(timer);
-    } else {
-      audioSynth.playStartBeep();
-      startTimeRef.current = performance.now();
+    } else if (prepCount === 1) {
+      audioSynth.playPrepBeep();
       const timer = setTimeout(() => {
+        audioSynth.playStartBeep();
+        startTimeRef.current = performance.now();
+        setPrepCount(0);
         setStatus('running');
-      }, 0);
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [status, prepCount]);
