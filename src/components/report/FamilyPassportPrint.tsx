@@ -169,7 +169,7 @@ export const FamilyPassportPrint: React.FC<FamilyPassportPrintProps> = ({
             <p>100% en tu navegador · Cero servidores · Cero rastreo de datos personales</p>
           </div>
           <div className="text-right">
-            <p className="font-mono font-bold text-slate-800">radarmotor.app</p>
+            <p className="font-mono font-bold text-slate-800">radar-motor.vercel.app</p>
             <p>Herramienta Educativa</p>
           </div>
         </div>

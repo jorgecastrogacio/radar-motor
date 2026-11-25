@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Header } from '../components/layout/Header';
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://radar-motor.vercel.app';
+
 export const metadata: Metadata = {
   title: 'RADAR MOTOR — Comprueba tu mapa de salud motriz en casa',
   description:
@@ -16,12 +18,15 @@ export const metadata: Metadata = {
     'condición física',
   ],
   authors: [{ name: 'RADAR MOTOR' }],
-  metadataBase: new URL('https://radarmotor.app'),
+  metadataBase: new URL(siteUrl),
+  alternates: {
+    canonical: siteUrl,
+  },
   openGraph: {
     title: 'RADAR MOTOR — Comprueba tu mapa de salud motriz en casa',
     description:
       'Descubre tu arquetipo motor y tu radar de 6 capacidades con pruebas validadas desde el salón. Cero registro, coste 0 €.',
-    url: 'https://radarmotor.app',
+    url: siteUrl,
     siteName: 'RADAR MOTOR',
     locale: 'es_ES',
     type: 'website',

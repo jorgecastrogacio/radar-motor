@@ -309,7 +309,7 @@ export function createRadarCardCanvas(
 
   ctx.fillStyle = '#38bdf8';
   ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
-  ctx.fillText('Evalúa tu radar en radarmotor.app', width / 2, footerY + 36);
+  ctx.fillText('Evalúa tu radar en radar-motor.vercel.app', width / 2, footerY + 36);
 
   return canvas;
 }

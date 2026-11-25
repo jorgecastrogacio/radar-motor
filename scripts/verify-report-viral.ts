@@ -185,8 +185,8 @@ assert(decoded?.alias === samplePayload.alias, `El alias decodificado '${decoded
 assert(decoded?.globalScore === samplePayload.globalScore, 'La puntuación decodificada debe coincidir');
 assert(decoded?.axisScores.lower_body_strength === 88, 'Las puntuaciones de ejes deben preservarse');
 
-const challengeUrl = buildChallengeUrl(lowerReport, 'https://radarmotor.app', 'Mamá Carmen');
-assert(challengeUrl.startsWith('https://radarmotor.app/evaluar?reto='), 'La URL generada debe tener la ruta y query param correctos');
+const challengeUrl = buildChallengeUrl(lowerReport, 'https://radar-motor.vercel.app', 'Mamá Carmen');
+assert(challengeUrl.startsWith('https://radar-motor.vercel.app/evaluar?reto='), 'La URL generada debe tener la ruta y query param correctos');
 
 // 5. VERIFICACIÓN DEL GENERADOR .ICS (90 DÍAS)
 console.log('5. Verificando generador de recordatorio iCalendar (.ics)...');

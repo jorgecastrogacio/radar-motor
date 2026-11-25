@@ -154,7 +154,7 @@ export function generateNinetyDayReminderICS(
   const nowStr = formatICSDate(new Date());
   const startStr = formatICSDate(targetDate);
   const endStr = formatICSDate(endDate);
-  const uid = `radar-motor-${Date.now()}-${Math.random().toString(36).substring(2, 9)}@radarmotor.local`;
+  const uid = `radar-motor-${Date.now()}-${Math.random().toString(36).substring(2, 9)}@radar-motor.vercel.app`;
 
   return [
     'BEGIN:VCALENDAR',
