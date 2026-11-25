@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   Activity,
+  AlertCircle,
   ArrowRight,
   Calendar,
   Check,
@@ -134,14 +135,23 @@ function InformeContent() {
   const isFamily = savedData.mode === 'family';
   const isExpress = savedData.mode === 'express';
 
-  const archetype: MotorArchetype = determineArchetype(report);
+  const hasNoData = !report || report.completedCount === 0;
+  const isIncomplete = !hasNoData && report.mode === 'full' && report.completedCount < report.totalTests;
+
+  const archetype: MotorArchetype | null = determineArchetype(report);
   const microChallenges: MicroChallenge[] = getRecommendedMicroChallenges(report, 2);
 
   // Construir serie primaria del radar
   const primaryAxisScores: Partial<Record<string, number>> = {};
   if (report.axisResults) {
     for (const [k, v] of Object.entries(report.axisResults)) {
-      if (v) primaryAxisScores[k] = v.score;
+      if (v) {
+        // En modo exprés, excluir del radar visual los ejes no evaluados
+        if (isExpress && (!v.testResults || v.testResults.length === 0)) {
+          continue;
+        }
+        primaryAxisScores[k] = v.score;
+      }
     }
   }
 
@@ -185,7 +195,7 @@ function InformeContent() {
   }
 
   const handleCopyChallengeUrl = () => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || hasNoData) return;
     const url = buildChallengeUrl(report, window.location.origin, participant.alias);
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url).then(() => {
@@ -196,6 +206,7 @@ function InformeContent() {
   };
 
   const handleSharePNG = async (format: 'square' | 'story') => {
+    if (hasNoData) return;
     setIsExporting(true);
     try {
       await shareRadarCardPNG(report, format, participant.alias);
@@ -205,6 +216,7 @@ function InformeContent() {
   };
 
   const handleDownloadPNG = async (format: 'square' | 'story') => {
+    if (hasNoData) return;
     setIsExporting(true);
     try {
       await downloadRadarCardPNG(report, format, participant.alias);
@@ -274,54 +286,174 @@ function InformeContent() {
         </div>
       )}
 
+      {/* Banner de Aviso: Sin Datos Suficientes */}
+      {hasNoData && (
+        <div className="rounded-3xl border-2 border-amber-300 bg-amber-50 p-6 text-amber-900 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:hidden">
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-2xl bg-amber-200 text-amber-950 shrink-0">
+              <AlertCircle className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="font-extrabold text-amber-950 text-base">
+                Evaluación sin pruebas registradas (Sin datos suficientes)
+              </p>
+              <p className="text-xs text-amber-800 mt-0.5">
+                No se ha registrado ninguna prueba física en esta sesión. Completa las pruebas para generar tu radar motor y desbloquear tu arquetipo.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/evaluar"
+            className="shrink-0 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-colors"
+          >
+            Comenzar Evaluación
+          </Link>
+        </div>
+      )}
+
+      {/* Banner de Aviso: Evaluación Incompleta en Modo Completo */}
+      {isIncomplete && (
+        <div className="rounded-2xl border border-sky-300 bg-sky-50 p-4 text-sky-950 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 print:hidden">
+          <div className="flex items-center gap-3">
+            <span className="px-2.5 py-1 rounded-lg bg-sky-200 text-sky-900 text-xs font-black shrink-0">
+              EVALUACIÓN INCOMPLETA
+            </span>
+            <p className="text-xs text-sky-900 font-medium">
+              Has completado <strong className="font-bold">{report.completedCount}</strong> de <strong className="font-bold">{report.totalTests}</strong> pruebas. Se muestran las capacidades calculadas con las pruebas realizadas.
+            </p>
+          </div>
+          <Link
+            href="/evaluar?mode=full"
+            className="shrink-0 text-xs font-bold text-sky-700 hover:text-sky-900 underline"
+          >
+            Completar pruebas pendientes
+          </Link>
+        </div>
+      )}
+
       {/* Cabecera del Arquetipo Motor */}
-      <section className="rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 space-y-6 shadow-md relative overflow-hidden print:hidden">
-        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-sky-300">
-              <ArchetypeIcon name={archetype.iconName} className="h-4 w-4" />
-              <span>ARQUETIPO MOTOR: {archetype.badge.toUpperCase()}</span>
+      {hasNoData ? (
+        <section className="rounded-3xl bg-slate-900 text-white p-6 sm:p-8 space-y-4 shadow-md relative overflow-hidden print:hidden border border-slate-800">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-slate-300">
+                <Compass className="h-4 w-4" />
+                <span>SIN DATOS SUFICIENTES</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                Evaluación No Iniciada
+              </h1>
+              <p className="text-sm font-medium text-slate-400">
+                {participant.alias} ({participant.age} años) · Completa las pruebas para asignar tu Arquetipo Motor
+              </p>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
-              {archetype.name}
-            </h1>
-            <p className="text-sm font-medium text-slate-300">
-              {participant.alias} ({participant.age} años) · {archetype.subtitle}
-            </p>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center sm:text-right shrink-0">
+              <span className="text-[11px] uppercase tracking-wider text-slate-400 block">Puntuación</span>
+              <span className="text-3xl font-mono font-bold text-slate-500">— / 100</span>
+              <span className="block mt-1 text-xs font-semibold text-slate-400">Sin clasificar</span>
+            </div>
           </div>
+        </section>
+      ) : isExpress ? (
+        <section className="rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 space-y-6 shadow-md relative overflow-hidden print:hidden">
+          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                <Zap className="h-4 w-4" />
+                <span>EVALUACIÓN PARCIAL · 3 DE 6 EJES</span>
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+                Perfil Exprés
+              </h1>
+              <p className="text-sm font-medium text-slate-300">
+                {participant.alias} ({participant.age} años) · Chequeo Rápido de 3 Pruebas
+              </p>
+            </div>
 
-          <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-4 text-center sm:text-right shrink-0">
-            <span className="text-[11px] uppercase tracking-wider text-slate-300 block">
-              Puntuación Media
-            </span>
-            <div className="flex items-baseline justify-center sm:justify-end gap-1">
-              <span className="text-4xl font-mono font-black text-sky-400 tabular-nums">
-                {Math.round(report.globalAverage)}
+            <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-4 text-center sm:text-right shrink-0">
+              <span className="text-[11px] uppercase tracking-wider text-slate-300 block">
+                Puntuación Media (3 ejes)
               </span>
-              <span className="text-xs text-slate-400">/ 100</span>
+              <div className="flex items-baseline justify-center sm:justify-end gap-1">
+                <span className="text-4xl font-mono font-black text-amber-400 tabular-nums">
+                  {Math.round(report.globalAverage)}
+                </span>
+                <span className="text-xs text-slate-400">/ 100</span>
+              </div>
+              <span className="inline-block mt-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                Nivel: Parcial ({report.globalAverage >= 85 ? 'Referente' : report.globalAverage >= 55 ? 'Sólido' : report.globalAverage >= 25 ? 'En Progreso' : 'Base'})
+              </span>
             </div>
-            <span className="inline-block mt-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-              Nivel: {report.globalAverage >= 85 ? 'Referente' : report.globalAverage >= 55 ? 'Sólido' : report.globalAverage >= 25 ? 'En Progreso' : 'Base'}
-            </span>
           </div>
-        </div>
 
-        {/* Descripción Constructiva */}
-        <div className="relative z-10 pt-4 border-t border-white/10 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm text-slate-200">
-          <div className="space-y-1 bg-white/5 p-3.5 rounded-xl border border-white/10">
-            <p className="font-bold text-sky-300 flex items-center gap-1.5">
-              <span>⚡</span> Tu Superpoder Motor
-            </p>
-            <p className="leading-relaxed text-slate-300">{archetype.strengthsText}</p>
+          <div className="relative z-10 pt-4 border-t border-white/10 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm text-slate-200">
+            <div className="space-y-1 bg-white/5 p-3.5 rounded-xl border border-white/10">
+              <p className="font-bold text-sky-300 flex items-center gap-1.5">
+                <span>⚡</span> Evaluación Rápida Completada
+              </p>
+              <p className="leading-relaxed text-slate-300">
+                Has completado las 3 pruebas clave de agilidad, fuerza inferior y equilibrio postural.
+              </p>
+            </div>
+            <div className="space-y-1 bg-white/5 p-3.5 rounded-xl border border-white/10">
+              <p className="font-bold text-amber-300 flex items-center gap-1.5">
+                <span>🌱</span> Desbloquear Arquetipo Motor
+              </p>
+              <p className="leading-relaxed text-slate-300">
+                Para desbloquear tu Arquetipo Motor oficial (de entre 8 perfiles) y evaluar los 6 ejes completos, realiza el Chequeo Completo (18 pruebas).
+              </p>
+            </div>
           </div>
-          <div className="space-y-1 bg-white/5 p-3.5 rounded-xl border border-white/10">
-            <p className="font-bold text-amber-300 flex items-center gap-1.5">
-              <span>🌱</span> Tu Oportunidad de Crecimiento
-            </p>
-            <p className="leading-relaxed text-slate-300">{archetype.opportunityText}</p>
+        </section>
+      ) : archetype ? (
+        <section className="rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 space-y-6 shadow-md relative overflow-hidden print:hidden">
+          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-sky-300">
+                <ArchetypeIcon name={archetype.iconName} className="h-4 w-4" />
+                <span>ARQUETIPO MOTOR: {archetype.badge.toUpperCase()}</span>
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+                {archetype.name}
+              </h1>
+              <p className="text-sm font-medium text-slate-300">
+                {participant.alias} ({participant.age} años) · {archetype.subtitle}
+              </p>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-4 text-center sm:text-right shrink-0">
+              <span className="text-[11px] uppercase tracking-wider text-slate-300 block">
+                Puntuación Media
+              </span>
+              <div className="flex items-baseline justify-center sm:justify-end gap-1">
+                <span className="text-4xl font-mono font-black text-sky-400 tabular-nums">
+                  {Math.round(report.globalAverage)}
+                </span>
+                <span className="text-xs text-slate-400">/ 100</span>
+              </div>
+              <span className="inline-block mt-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                Nivel: {report.globalAverage >= 85 ? 'Referente' : report.globalAverage >= 55 ? 'Sólido' : report.globalAverage >= 25 ? 'En Progreso' : 'Base'}
+              </span>
+            </div>
           </div>
-        </div>
-      </section>
+
+          {/* Descripción Constructiva */}
+          <div className="relative z-10 pt-4 border-t border-white/10 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm text-slate-200">
+            <div className="space-y-1 bg-white/5 p-3.5 rounded-xl border border-white/10">
+              <p className="font-bold text-sky-300 flex items-center gap-1.5">
+                <span>⚡</span> Tu Superpoder Motor
+              </p>
+              <p className="leading-relaxed text-slate-300">{archetype.strengthsText}</p>
+            </div>
+            <div className="space-y-1 bg-white/5 p-3.5 rounded-xl border border-white/10">
+              <p className="font-bold text-amber-300 flex items-center gap-1.5">
+                <span>🌱</span> Tu Oportunidad de Crecimiento
+              </p>
+              <p className="leading-relaxed text-slate-300">{archetype.opportunityText}</p>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {/* Gráfico Radar Interactivo de 6 Ejes - VISTA DE MAPA OFICIAL (#0F172A) */}
       <section className="rounded-[22px] border border-slate-800 bg-[#0F172A] p-6 sm:p-8 space-y-6 shadow-xl print:hidden text-white">
@@ -403,8 +535,12 @@ function InformeContent() {
           <button
             type="button"
             onClick={() => handleSharePNG('square')}
-            disabled={isExporting}
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white border border-slate-300 hover:border-blue-500 hover:bg-blue-50/50 text-slate-800 text-xs font-bold transition-all shadow-xs cursor-pointer"
+            disabled={isExporting || hasNoData}
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white border border-slate-300 text-slate-800 text-xs font-bold transition-all shadow-xs ${
+              hasNoData
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:border-blue-500 hover:bg-blue-50/50 cursor-pointer'
+            }`}
           >
             <Download className="h-4 w-4 text-blue-600" />
             <span>Tarjeta WhatsApp (1:1)</span>
@@ -414,8 +550,12 @@ function InformeContent() {
           <button
             type="button"
             onClick={() => handleDownloadPNG('story')}
-            disabled={isExporting}
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white border border-slate-300 hover:border-blue-500 hover:bg-blue-50/50 text-slate-800 text-xs font-bold transition-all shadow-xs cursor-pointer"
+            disabled={isExporting || hasNoData}
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white border border-slate-300 text-slate-800 text-xs font-bold transition-all shadow-xs ${
+              hasNoData
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:border-blue-500 hover:bg-blue-50/50 cursor-pointer'
+            }`}
           >
             <Download className="h-4 w-4 text-indigo-600" />
             <span>Tarjeta Stories (9:16)</span>
@@ -425,7 +565,12 @@ function InformeContent() {
           <button
             type="button"
             onClick={handleCopyChallengeUrl}
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white border border-slate-300 hover:border-amber-500 hover:bg-amber-50/50 text-slate-800 text-xs font-bold transition-all shadow-xs cursor-pointer"
+            disabled={hasNoData}
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white border border-slate-300 text-slate-800 text-xs font-bold transition-all shadow-xs ${
+              hasNoData
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:border-amber-500 hover:bg-amber-50/50 cursor-pointer'
+            }`}
           >
             {copyFeedback ? (
               <>
@@ -444,12 +589,22 @@ function InformeContent() {
           <button
             type="button"
             onClick={handleDownloadICS}
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white border border-slate-300 hover:border-emerald-500 hover:bg-emerald-50/50 text-slate-800 text-xs font-bold transition-all shadow-xs cursor-pointer"
+            disabled={hasNoData}
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white border border-slate-300 text-slate-800 text-xs font-bold transition-all shadow-xs ${
+              hasNoData
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:border-emerald-500 hover:bg-emerald-50/50 cursor-pointer'
+            }`}
           >
             <Calendar className="h-4 w-4 text-emerald-600" />
             <span>Reevaluación a 90 Días</span>
           </button>
         </div>
+        {hasNoData && (
+          <p className="text-[11px] text-slate-500 text-center italic">
+            * Completa al menos una prueba para exportar tarjetas o crear enlaces de reto.
+          </p>
+        )}
       </section>
 
       {/* Los 2 Micro-Retos Domésticos Recomendados */}
@@ -512,6 +667,7 @@ function InformeContent() {
             const ax = report.axisResults?.[axisId];
             if (!ax) return null;
             const catTheme = CATEGORY_THEMES[axisId];
+            const isUnmeasured = isExpress && (!ax.testResults || ax.testResults.length === 0);
 
             return (
               <div
@@ -522,22 +678,31 @@ function InformeContent() {
                   <div className="flex items-center gap-2.5">
                     <span
                       className="w-7 h-7 rounded-full text-white text-xs font-black flex items-center justify-center shrink-0 shadow-xs"
-                      style={{ backgroundColor: catTheme.color }}
+                      style={{ backgroundColor: isUnmeasured ? '#94a3b8' : catTheme.color }}
                     >
                       {catTheme.number}
                     </span>
                     <div>
                       <h3 className="font-bold text-sm text-slate-900 leading-tight">{ax.name}</h3>
                       <span className="text-[11px] font-semibold text-slate-500">
-                        Nivel: <strong className="text-slate-800">{ax.level}</strong>
+                        Nivel:{' '}
+                        <strong className={isUnmeasured ? 'text-slate-500' : 'text-slate-800'}>
+                          {isUnmeasured ? 'No evaluado' : ax.level}
+                        </strong>
                       </span>
                     </div>
                   </div>
                   <span
                     className="text-xl font-mono font-black tabular-nums"
-                    style={{ color: catTheme.colorText }}
+                    style={{ color: isUnmeasured ? '#94a3b8' : catTheme.colorText }}
                   >
-                    {Math.round(ax.score)} <span className="text-xs font-normal text-slate-400">pts</span>
+                    {isUnmeasured ? (
+                      <span className="text-sm font-semibold text-slate-400">No evaluado</span>
+                    ) : (
+                      <>
+                        {Math.round(ax.score)} <span className="text-xs font-normal text-slate-400">pts</span>
+                      </>
+                    )}
                   </span>
                 </div>
 
@@ -546,14 +711,21 @@ function InformeContent() {
                   <div
                     className="h-full transition-all duration-500"
                     style={{
-                      width: `${Math.min(100, Math.max(5, ax.score))}%`,
-                      backgroundColor: catTheme.color,
+                      width: isUnmeasured ? '0%' : `${Math.min(100, Math.max(5, ax.score))}%`,
+                      backgroundColor: isUnmeasured ? '#cbd5e1' : catTheme.color,
                     }}
                   />
                 </div>
 
+                {/* Mensaje de no evaluado en modo exprés */}
+                {isUnmeasured && (
+                  <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-500 italic">
+                    Eje no incluido en el Reto Exprés. Se evalúa en el Chequeo Completo.
+                  </div>
+                )}
+
                 {/* Pruebas */}
-                {ax.testResults && ax.testResults.length > 0 && (
+                {!isUnmeasured && ax.testResults && ax.testResults.length > 0 && (
                   <div className="pt-2 border-t border-slate-100 space-y-1.5">
                     {ax.testResults.map((tr) => (
                       <div key={tr.testId} className="flex items-center justify-between text-xs">

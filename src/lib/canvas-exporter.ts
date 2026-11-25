@@ -102,21 +102,49 @@ export function createRadarCardCanvas(
   // 3. Arquetipo Motor
   const archetypeY = isStory ? 330 : 320;
   ctx.textAlign = 'left';
-  ctx.fillStyle = 'rgba(59, 130, 246, 0.15)';
-  ctx.strokeStyle = '#3b82f6';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.roundRect(70, archetypeY, width - 140, 84, 16);
-  ctx.fill();
-  ctx.stroke();
+  if (archetype) {
+    ctx.fillStyle = 'rgba(59, 130, 246, 0.15)';
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(70, archetypeY, width - 140, 84, 16);
+    ctx.fill();
+    ctx.stroke();
 
-  ctx.fillStyle = '#93c5fd';
-  ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-  ctx.fillText(`ARQUETIPO: ${archetype.badge.toUpperCase()}`, 105, archetypeY + 36);
+    ctx.fillStyle = '#93c5fd';
+    ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
+    ctx.fillText(`ARQUETIPO: ${archetype.badge.toUpperCase()}`, 105, archetypeY + 36);
 
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '700 32px system-ui, -apple-system, sans-serif';
-  ctx.fillText(archetype.name, 105, archetypeY + 68);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '700 32px system-ui, -apple-system, sans-serif';
+    ctx.fillText(archetype.name, 105, archetypeY + 68);
+  } else {
+    ctx.fillStyle = 'rgba(234, 88, 12, 0.15)';
+    ctx.strokeStyle = '#ea580c';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(70, archetypeY, width - 140, 84, 16);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fdba74';
+    ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
+    ctx.fillText(
+      report.mode === 'express' ? 'EVALUACIÓN PARCIAL' : 'EVALUACIÓN INCOMPLETA',
+      105,
+      archetypeY + 36
+    );
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '700 30px system-ui, -apple-system, sans-serif';
+    ctx.fillText(
+      report.mode === 'express'
+        ? 'Modo Exprés (3 de 6 ejes evaluados)'
+        : `${report.completedCount} de ${report.totalTests} pruebas realizadas`,
+      105,
+      archetypeY + 68
+    );
+  }
 
   // 4. Centro y Radio del Radar
   const radarCenterY = isStory ? 840 : 660;

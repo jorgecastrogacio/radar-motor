@@ -109,7 +109,7 @@ export function createChallengePayloadFromReport(
     sex: report.sex,
     globalScore: Math.round(report.globalScore),
     globalAverage: Math.round(report.globalAverage),
-    archetypeId: archetype.id,
+    archetypeId: archetype ? archetype.id : (report.mode === 'express' ? 'parcial' : 'sin_datos'),
     axisScores,
     date: dateStr,
   };
@@ -233,7 +233,7 @@ export function saveReportToHistory(
       ageBracket: report.ageBracket,
       sex: report.sex,
       globalScore: Math.round(report.globalScore),
-      archetypeId: archetype.id,
+      archetypeId: archetype ? archetype.id : (report.mode === 'express' ? 'express_parcial' : 'sin_datos'),
       axisScores,
       mode: report.mode,
     };

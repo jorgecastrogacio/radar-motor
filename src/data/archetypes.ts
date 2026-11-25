@@ -127,15 +127,26 @@ export const ARCHETYPES: Record<string, MotorArchetype> = {
 
 /**
  * Determina el arquetipo motor constructivo a partir de un informe de evaluación.
+ * Retorna null si no hay datos suficientes (0 pruebas) o si es modo exprés (evaluación parcial).
  * Criterio pedagógico y motivacional 100% positivo.
  */
-export function determineArchetype(report: EvaluationReport): MotorArchetype {
-  // 1. Si la media global es menor a 35 puntos (con tests completados), asignar Semilla en Marcha
-  if (report.completedCount > 0 && report.globalAverage < 35) {
+export function determineArchetype(report: EvaluationReport): MotorArchetype | null {
+  // 1. Si no hay informe o no se ha completado ninguna prueba, no asignar arquetipo (evita falsos positivos)
+  if (!report || report.completedCount === 0) {
+    return null;
+  }
+
+  // 2. En modo exprés es siempre una evaluación parcial (3 de 6 ejes): no asignar arquetipo global
+  if (report.mode === 'express') {
+    return null;
+  }
+
+  // 3. Si la media global es menor a 35 puntos (con tests completados en modo completo), asignar Semilla en Marcha
+  if (report.globalAverage < 35) {
     return ARCHETYPES.semilla_en_marcha;
   }
 
-  // 2. Extraer puntuaciones de ejes evaluados
+  // 4. Extraer puntuaciones de ejes evaluados
   const evaluatedAxes: { axisId: AxisId; score: number }[] = [];
   const axisIds: AxisId[] = [
     'lower_body_strength',
@@ -154,7 +165,7 @@ export function determineArchetype(report: EvaluationReport): MotorArchetype {
   }
 
   if (evaluatedAxes.length === 0) {
-    return ARCHETYPES.semilla_en_marcha;
+    return null;
   }
 
   // 3. Evaluar dispersión (diferencia max - min)
