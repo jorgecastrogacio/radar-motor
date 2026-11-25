@@ -320,6 +320,16 @@ function HomeContent() {
         </Link>
       </section>
 
+      {/* Aviso Legal y Pedagógico */}
+      <footer className="pt-6 border-t border-stone-300/80 text-center text-xs text-stone-500 space-y-1">
+        <p>
+          <strong>RADAR MOTOR</strong> es una herramienta pedagógica y deportiva de autoevaluación motriz basada en pruebas de condición física.
+        </p>
+        <p>
+          No constituye un diagnóstico médico, clínico ni prescripción de tratamiento. Ante cualquier duda, dolor o condición de salud, consulta con un profesional sanitario colegiado.
+        </p>
+      </footer>
+
       {/* Modal interactivo de LivingRoomKit */}
       {isKitModalOpen && (
         <LivingRoomKit
