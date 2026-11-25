@@ -605,6 +605,12 @@ function InformeContent() {
             * Completa al menos una prueba para exportar tarjetas o crear enlaces de reto.
           </p>
         )}
+
+        <div className="pt-2 border-t border-slate-200/80 text-[11px] text-slate-500 space-y-1">
+          <p>
+            🔒 <strong>Aviso de Privacidad del Reto:</strong> El enlace de reto contiene únicamente tu alias, edad, puntuación media y resultados de las pruebas para que tu contrincante pueda superponer su radar al tuyo. No incluye datos de contacto ni identificadores personales.
+          </p>
+        </div>
       </section>
 
       {/* Los 2 Micro-Retos Domésticos Recomendados */}

@@ -17,6 +17,7 @@ import {
   RotateCcw,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   Trash2,
   UserCheck,
   Users,
@@ -46,6 +47,7 @@ import { CountdownTimer } from '../../components/timers/CountdownTimer';
 import { StopwatchTimer } from '../../components/timers/StopwatchTimer';
 import { ManualScaleInput } from '../../components/timers/ManualScaleInput';
 import { SafetyTrafficLight } from '../../data/first-aid';
+import { decodeChallengePayload, ChallengePayload } from '../../lib/share-codec';
 
 function EvaluarContent() {
   const router = useRouter();
@@ -61,6 +63,23 @@ function EvaluarContent() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [safetyStatus, setSafetyStatus] = useState<SafetyTrafficLight>('green');
   const [isKitModalOpen, setIsKitModalOpen] = useState(false);
+
+  // Desafío recibido (?reto=...)
+  const [challengeData, setChallengeData] = useState<ChallengePayload | null>(null);
+  const [isChallengeCorrupt, setIsChallengeCorrupt] = useState(false);
+
+  useEffect(() => {
+    if (retoParam) {
+      const decoded = decodeChallengePayload(retoParam);
+      if (decoded) {
+        setChallengeData(decoded);
+        setIsChallengeCorrupt(false);
+      } else {
+        setChallengeData(null);
+        setIsChallengeCorrupt(true);
+      }
+    }
+  }, [retoParam]);
 
   // Participantes
   const [participants, setParticipants] = useState<Participant[]>([
@@ -214,6 +233,46 @@ function EvaluarContent() {
 
   return (
     <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 space-y-8">
+      {/* Banner de Desafío Recibido (?reto=...) */}
+      {challengeData && (
+        <div className="rounded-3xl border-2 border-amber-400 bg-amber-50/90 p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-2xl bg-amber-200 text-amber-950 shrink-0">
+              <Sparkles className="h-6 w-6 text-amber-800" />
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-200/80 text-amber-900 mb-1">
+                ¡Reto Motor Recibido!
+              </div>
+              <p className="font-extrabold text-amber-950 text-base">
+                {challengeData.alias} ({challengeData.age} años) te ha desafiado
+              </p>
+              <p className="text-xs text-amber-800">
+                Puntuación rival a batir:{' '}
+                <strong className="tabular-nums font-bold">
+                  {challengeData.globalAverage !== undefined
+                    ? `${challengeData.globalAverage} pts (/ 100)`
+                    : `${challengeData.globalScore} pts`}
+                </strong>
+                . Al terminar, tu radar se superpondrá directamente al suyo.
+              </p>
+            </div>
+          </div>
+          <div className="shrink-0 flex items-center gap-2">
+            <span className="text-xs font-bold text-amber-900 bg-white/80 px-3 py-1.5 rounded-xl border border-amber-300">
+              {mode === 'express' ? 'Modo Exprés (3 pruebas)' : 'Modo Completo (18 pruebas)'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Aviso de Enlace de Reto Inválido */}
+      {isChallengeCorrupt && (
+        <div className="rounded-2xl border border-slate-300 bg-slate-100 p-4 text-slate-700 text-xs flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+          <span>El enlace de reto recibido no es válido o está dañado. Puedes continuar con tu evaluación de forma normal.</span>
+        </div>
+      )}
       {/* =========================================================================
           PASO 1: SEMÁFORO MÉDICO
       ========================================================================= */}
