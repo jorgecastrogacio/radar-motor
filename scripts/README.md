@@ -25,5 +25,13 @@ Cada curva generada contiene los 5 puntos clave de percentil:
 
 La función `enforceMonotonicity` asegura que no existan cruces ni solapes entre percentiles para pruebas donde más es mejor (`p10 < p25 < zsm_min < zsm_opt < p95`) o donde menos es mejor (`p10 > p25 > zsm_min > zsm_opt > p95`).
 
-## 5. Verificación
-El script es verificado mediante tests automatizados en `src/tests/normative-reproducibility.test.ts` que validan la existencia y estricta monotonicidad de las 792 curvas.
+## 5. Verificación Binaria Byte a Byte
+Se ha verificado la reproducibilidad determinista del generador:
+- **Archivo de destino:** `src/data/normative-curves.ts`
+- **Tamaño exacto:** 108.932 bytes
+- **SHA-256:** `0115e1786001ebefe5d3cae4b55d32212ad825d2a2783b3afbbcb4a384951027`
+- **Resultado de comparación:** Generando la matriz a un archivo temporal (`/tmp/normative-curves-temp.ts`), la comparación binaria byte a byte (`targetBuf.equals(tempBuf)`) resulta `true` (diferencia 0 bytes, 0 discrepancias).
+
+## 6. Distinción Crítica: Verdad Computacional vs. Validez Científica Empírica
+- **Verdad computacional:** El código del generador es 100% determinista, libre de errores de sintaxis o ejecución, y garantiza matemáticamente la monotonicidad de los 792 baremos sin cruce de percentiles ni valores nulos.
+- **Validez científica empírica:** Las fuentes citadas en cabecera (Rikli & Jones SFT, Eurofit, ALPHA-Fitness, SPPB, MEXT Japón) proveen las referencias teóricas de los hitos. Sin embargo, la extrapolación e interpolación matemática a los 22 tramos continuos de edad constituye una aproximación algorítmica con fines pedagógicos y lúdicos, no una baremación médica certificada. Cualquier validación biomédica o contraste con cohortes poblacionales reales queda clasificado como pendiente de validación científica externa (ver `docs/PENDIENTES-VALIDACION.md`).
