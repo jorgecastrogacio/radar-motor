@@ -81,10 +81,14 @@ export function createRadarCardCanvas(
   ctx.fillText(alias, 105, 220);
 
   const sexLabel = report.sex === 'M' ? 'Masculino' : report.sex === 'F' ? 'Femenino' : 'Universal';
+  const ageDetail =
+    report.ageBracket && report.ageBracket !== String(report.age)
+      ? `${report.age} años (${report.ageBracket} años)`
+      : `${report.age} años`;
   ctx.fillStyle = '#cbd5e1';
   ctx.font = '400 24px system-ui, -apple-system, sans-serif';
   ctx.fillText(
-    `${report.age} años (${report.ageBracket} años) · ${sexLabel} · Modo ${report.mode === 'express' ? 'Exprés' : 'Completo'}`,
+    `${ageDetail} · ${sexLabel} · Modo ${report.mode === 'express' ? 'Exprés' : 'Completo'}`,
     105,
     262
   );
@@ -147,9 +151,9 @@ export function createRadarCardCanvas(
   }
 
   // 4. Centro y Radio del Radar
-  const radarCenterY = isStory ? 840 : 660;
+  const radarCenterY = isStory ? 820 : 700;
   const radarCenterX = width / 2;
-  const radarRadius = isStory ? 280 : 220;
+  const radarRadius = isStory ? 260 : 210;
 
   // Función interna polar a cartesiana
   const polar = (angleDeg: number, r: number) => {
@@ -232,7 +236,7 @@ export function createRadarCardCanvas(
   // Etiquetas de los ejes
   AXES_CONFIG.forEach((axis) => {
     const val = Math.round(report.axisResults?.[axis.id]?.score ?? 0);
-    const labelRadius = radarRadius + 48;
+    const labelRadius = radarRadius + (isStory ? 44 : 38);
     const pt = polar(axis.angleDeg, labelRadius);
 
     let align: CanvasTextAlign = 'center';
