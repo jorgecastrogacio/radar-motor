@@ -326,7 +326,7 @@ function HomeContent() {
           <strong>RADAR MOTOR</strong> es una herramienta pedagógica y deportiva de autoevaluación motriz basada en pruebas de condición física.
         </p>
         <p>
-          No constituye un diagnóstico médico, clínico ni prescripción de tratamiento. Ante cualquier duda, dolor o condición de salud, consulta con un profesional sanitario colegiado.
+          No constituye evaluación médica ni prescripción de tratamiento clínico. Ante cualquier duda, dolor o condición de salud, consulta con un profesional sanitario colegiado.
         </p>
       </footer>
 
