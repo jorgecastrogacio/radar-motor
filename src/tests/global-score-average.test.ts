@@ -27,8 +27,8 @@ describe('1.2 Puntuación global vs Media 0-100', () => {
   });
 
   it('decodifica enlaces antiguos v1 manteniendo la semántica de globalScore y decodifica v2 con globalAverage', () => {
-    // Enlace v1 (sin campo v ni globalAverage)
-    const legacyPayload: ChallengePayload = {
+    // Enlace v1 (sin campo v ni globalAverage, representa enlaces antiguos reales del formato v1)
+    const legacyPayload = {
       alias: 'Rival Antiguo',
       age: 30,
       ageBracket: '21-30',
@@ -37,7 +37,7 @@ describe('1.2 Puntuación global vs Media 0-100', () => {
       archetypeId: 'resorte_explosivo',
       axisScores: { lower_body_strength: 80 },
       date: '2026-11-20',
-    };
+    } as unknown as ChallengePayload;
 
     const encodedV1 = encodeChallengePayload(legacyPayload);
     const decodedV1 = decodeChallengePayload(encodedV1);

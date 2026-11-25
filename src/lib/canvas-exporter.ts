@@ -1,13 +1,9 @@
 import { AxisId, EvaluationReport } from '../types/radar-motor';
 import { determineArchetype } from '../data/archetypes';
 import { ALL_AXIS_IDS } from '../data/tests-catalog';
+import { isAxisEvaluated } from '../lib/scoring-engine';
 
 export type CardFormat = 'square' | 'story';
-
-interface CanvasDimensions {
-  width: number;
-  height: number;
-}
 
 const AXES_CONFIG: { id: AxisId; short: string; angleDeg: number }[] = [
   { id: 'lower_body_strength', short: 'Tren Inferior', angleDeg: -90 },
@@ -65,7 +61,7 @@ export function createRadarCardCanvas(
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '500 22px system-ui, -apple-system, sans-serif';
-  ctx.fillText('Autoevaluación Motriz 360° · Científica y Familiar', 70, 126);
+  ctx.fillText('Autoevaluación motriz 360° · Uso educativo, no clínico', 70, 126);
 
   // Tarjeta de Identificación del Usuario
   ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
@@ -79,31 +75,41 @@ export function createRadarCardCanvas(
   // Nombre de usuario y grupo de edad
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 42px system-ui, -apple-system, sans-serif';
-  ctx.fillText(alias, 105, 220);
+  ctx.fillText(alias, 105, 215);
 
   const sexLabel = report.sex === 'M' ? 'Masculino' : report.sex === 'F' ? 'Femenino' : 'Universal';
   const ageDetail =
     report.ageBracket && report.ageBracket !== String(report.age)
       ? `${report.age} años (${report.ageBracket} años)`
       : `${report.age} años`;
+  const subtitleText = `${ageDetail} · ${sexLabel} · Modo ${report.mode === 'express' ? 'Exprés' : 'Completo'}`;
   ctx.fillStyle = '#cbd5e1';
-  ctx.font = '400 24px system-ui, -apple-system, sans-serif';
-  ctx.fillText(
-    `${ageDetail} · ${sexLabel} · Modo ${report.mode === 'express' ? 'Exprés' : 'Completo'}`,
-    105,
-    262
-  );
+  ctx.font = '400 22px system-ui, -apple-system, sans-serif';
+  const maxSubtitleWidth = width - 105 - 320 - 105;
+  if (ctx.measureText(subtitleText).width > maxSubtitleWidth) {
+    ctx.font = '400 19px system-ui, -apple-system, sans-serif';
+  }
+  ctx.fillText(subtitleText, 105, 258);
 
   // Puntuación Media a la derecha
   const isZeroData = (report.completedCount ?? 0) === 0;
   ctx.textAlign = 'right';
   ctx.fillStyle = isZeroData ? '#94a3b8' : '#38bdf8';
   ctx.font = '800 68px system-ui, -apple-system, sans-serif';
-  ctx.fillText(isZeroData ? '—' : `${Math.round(report.globalAverage)}`, width - 105, 235);
+  ctx.fillText(isZeroData ? '—' : `${Math.round(report.globalAverage)}`, width - 105, 225);
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '600 20px system-ui, -apple-system, sans-serif';
-  ctx.fillText(isZeroData ? 'SIN CLASIFICAR' : '/ 100 PUNTOS (MEDIA)', width - 105, 268);
+  ctx.fillText(isZeroData ? 'SIN CLASIFICAR' : '/ 100 PUNTOS (MEDIA)', width - 105, 256);
+
+  if (!isZeroData) {
+    ctx.fillStyle = '#64748b';
+    ctx.font = '500 14px system-ui, -apple-system, sans-serif';
+    const subLabel = report.mode === 'express'
+      ? 'Media de 3 pruebas; omitidas = 0'
+      : 'Media de 6 ejes; omitidas = 0';
+    ctx.fillText(subLabel, width - 105, 280);
+  }
 
   // 3. Arquetipo Motor
   const archetypeY = isStory ? 330 : 320;
@@ -190,7 +196,7 @@ export function createRadarCardCanvas(
     ctx.stroke();
   });
 
-  // Zona Saludable Motriz (ZSM 45–75%) sombreada en verde sutil
+  // Franja de referencia orientativa (ZSM 45–75%) sombreada en verde sutil
   ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
   ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
   ctx.lineWidth = 1.5;
@@ -247,7 +253,9 @@ export function createRadarCardCanvas(
 
   // Etiquetas de los ejes
   AXES_CONFIG.forEach((axis) => {
-    const val = Math.round(report.axisResults?.[axis.id]?.score ?? 0);
+    const axisRes = report.axisResults?.[axis.id];
+    const isEvaluated = isAxisEvaluated(axisRes);
+    const val = Math.round(axisRes?.score ?? 0);
     const labelRadius = radarRadius + (isStory ? 44 : 38);
     const pt = polar(axis.angleDeg, labelRadius);
 
@@ -260,9 +268,9 @@ export function createRadarCardCanvas(
     ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
     ctx.fillText(axis.short, pt.x, pt.y - 8);
 
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = '800 22px system-ui, -apple-system, sans-serif';
-    ctx.fillText(`${val} pts`, pt.x, pt.y + 20);
+    ctx.fillStyle = isEvaluated ? '#38bdf8' : '#94a3b8';
+    ctx.font = isEvaluated ? '800 22px system-ui, -apple-system, sans-serif' : '600 18px system-ui, -apple-system, sans-serif';
+    ctx.fillText(isEvaluated ? `${val} pts` : '- sin evaluar', pt.x, pt.y + 20);
   });
 
   // 5. Contenido extra si es formato historia (Story 9:16)
@@ -274,7 +282,7 @@ export function createRadarCardCanvas(
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.roundRect(70, extraY, width - 140, 260, 20);
+    ctx.roundRect(70, extraY, width - 140, 330, 20);
     ctx.fill();
     ctx.stroke();
 
@@ -295,8 +303,8 @@ export function createRadarCardCanvas(
 
     ctx.fillStyle = '#e2e8f0';
     ctx.font = '400 24px system-ui, -apple-system, sans-serif';
-    // Dividir texto largo en líneas
-    const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
+    // Dividir texto largo en líneas y devolver la posición Y final
+    const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeight: number): number => {
       const words = text.split(' ');
       let line = '';
       let currY = y;
@@ -312,17 +320,19 @@ export function createRadarCardCanvas(
         }
       }
       ctx.fillText(line, x, currY);
+      return currY;
     };
 
     const mainText = archetype
       ? archetype.strengthsText
       : report.mode === 'express'
-      ? 'Has completado el Reto Exprés con pruebas de agilidad, equilibrio y fuerza inferior. Completa el Chequeo Completo (18 pruebas) para obtener tu Arquetipo Motor y desbloquear tu perfil biomotor 360°.'
+      ? `Has completado ${report.completedCount} de ${report.totalTests} pruebas del Reto Exprés (fuerza inferior, equilibrio y agilidad). Las omitidas cuentan 0 en la media.`
       : isZeroData
       ? 'No se ha registrado ninguna prueba física en esta sesión. Completa las pruebas para generar tu radar motor y desbloquear tu arquetipo.'
       : `Has completado ${report.completedCount} de ${report.totalTests} pruebas. Completa las pruebas restantes para desbloquear tu Arquetipo Motor.`;
 
-    wrapText(mainText, 105, extraY + 95, width - 210, 36);
+    const afterMainY = wrapText(mainText, 105, extraY + 95, width - 210, 36);
+    const ctaY = Math.max(extraY + 200, afterMainY + 45);
 
     // Call to action en stories
     ctx.fillStyle = '#f59e0b';
@@ -332,7 +342,7 @@ export function createRadarCardCanvas(
         ? '🎯 RETO MOTOR:'
         : '🎯 SIGUIENTE PASO:',
       105,
-      extraY + 185
+      ctaY
     );
 
     ctx.fillStyle = '#cbd5e1';
@@ -345,7 +355,7 @@ export function createRadarCardCanvas(
       ? 'Comienza una evaluación en modo individual o exprés.'
       : 'Accede al chequeo completo para finalizar todas las capacidades.';
 
-    wrapText(subText, 105, extraY + 220, width - 210, 32);
+    wrapText(subText, 105, ctaY + 35, width - 210, 32);
   }
 
   // 6. Pie de página y garantía de privacidad
@@ -353,7 +363,7 @@ export function createRadarCardCanvas(
   ctx.textAlign = 'center';
   ctx.fillStyle = '#94a3b8';
   ctx.font = '500 22px system-ui, -apple-system, sans-serif';
-  ctx.fillText('🔒 100% Client-Side · 0 € Servidores · Privacidad Estricta RGPD', width / 2, footerY);
+  ctx.fillText('Cálculo en tu dispositivo · Sin registro', width / 2, footerY);
 
   ctx.fillStyle = '#38bdf8';
   ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';

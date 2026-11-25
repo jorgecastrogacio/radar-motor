@@ -3,24 +3,17 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  Activity,
-  AlertTriangle,
   ArrowLeft,
-  CheckCircle2,
   Download,
   GraduationCap,
-  Info,
   Lock,
   Plus,
-  RotateCcw,
-  ShieldCheck,
   Table,
   Timer,
   Trash2,
-  Users,
 } from 'lucide-react';
 import { ALL_AXIS_IDS, ALL_TEST_IDS, AXES_CONFIG, EXPRESS_TEST_IDS, TESTS_CATALOG } from '../../data/tests-catalog';
-import { AxisId, Sex, TestId, ZsmStatus } from '../../types/radar-motor';
+import { Sex, TestId } from '../../types/radar-motor';
 import { calculateTestScore, evaluateFullReport } from '../../lib/scoring-engine';
 import {
   ClassroomSession,
@@ -55,7 +48,9 @@ function AulaContent() {
   useEffect(() => {
     const saved = loadClassroomSession();
     if (saved && saved.students.length > 0) {
-      setSession(saved);
+      queueMicrotask(() => {
+        setSession(saved);
+      });
     }
   }, []);
 
@@ -67,7 +62,7 @@ function AulaContent() {
   };
 
   const handleClearSession = () => {
-    if (confirm('¿Seguro que deseas borrar todos los datos del aula de este dispositivo? Esta acción es irreversible (cumplimiento RGPD).')) {
+    if (confirm('¿Seguro que deseas borrar todos los datos del aula de este dispositivo? Esta acción es irreversible (se borran de este dispositivo).')) {
       clearClassroomSession();
       setSession({
         groupLabel: 'Nuevo Grupo',
@@ -193,7 +188,7 @@ function AulaContent() {
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 flex items-center gap-1.5">
             <Lock className="h-3 w-3" />
-            <span>100% Local · RGPD Estricto</span>
+            <span>Datos guardados en este dispositivo</span>
           </span>
           <button
             type="button"

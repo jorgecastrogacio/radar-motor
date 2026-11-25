@@ -9,25 +9,23 @@ import {
   ArrowRight,
   Calendar,
   Check,
-  CheckCircle2,
   Compass,
   Copy,
   Download,
   Feather,
   Flame,
-  Printer,
   RotateCcw,
   Share2,
   Shield,
-  ShieldCheck,
   Sparkles,
   Sprout,
   Users,
   Zap,
 } from 'lucide-react';
-import { ALL_AXIS_IDS, AXES_CONFIG } from '../../data/tests-catalog';
+import { ALL_AXIS_IDS } from '../../data/tests-catalog';
 import { CATEGORY_THEMES } from '../../data/category-theme';
 import { loadLastReport, SavedReport } from '../../lib/session-store';
+import { EvaluationReport } from '../../types/radar-motor';
 import { determineArchetype, MotorArchetype } from '../../data/archetypes';
 import { getRecommendedMicroChallenges, MicroChallenge } from '../../data/micro-challenges';
 import { RadarChartSvg, RadarSeries } from '../../components/report/RadarChartSvg';
@@ -41,7 +39,7 @@ import {
   HistoryEntry,
   saveReportToHistory,
 } from '../../lib/share-codec';
-import { evaluateFullReport } from '../../lib/scoring-engine';
+import { evaluateFullReport, isAxisEvaluated } from '../../lib/scoring-engine';
 import { createRadarCardCanvas, downloadRadarCardPNG, shareRadarCardPNG } from '../../lib/canvas-exporter';
 
 function ArchetypeIcon({ name, className = 'h-6 w-6' }: { name: string; className?: string }) {
@@ -66,7 +64,7 @@ function ArchetypeIcon({ name, className = 'h-6 w-6' }: { name: string; classNam
   }
 }
 
-function CanvasCardLivePreview({ report, alias }: { report: any; alias: string }) {
+function CanvasCardLivePreview({ report, alias }: { report: EvaluationReport; alias: string }) {
   const squareCanvasRef = React.useRef<HTMLDivElement>(null);
   const storyCanvasRef = React.useRef<HTMLDivElement>(null);
 
@@ -101,7 +99,7 @@ function CanvasCardLivePreview({ report, alias }: { report: any; alias: string }
         <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
           Visualización de Tarjetas Gráficas (Canvas 2D)
         </h4>
-        <span className="text-[11px] text-slate-500">100% generado en cliente</span>
+        <span className="text-[11px] text-slate-500">Cálculo en tu dispositivo · Sin registro</span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-slate-900/90 rounded-2xl p-3 space-y-2 text-center">
@@ -127,29 +125,36 @@ function InformeContent() {
   const [comparisonMode, setComparisonMode] = useState<string>('none');
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [personalHistory, setPersonalHistory] = useState<HistoryEntry[]>([]);
+  const [comparisonHistory, setComparisonHistory] = useState<HistoryEntry[]>([]);
   const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const reportData = loadLastReport();
-    setSavedData(reportData);
-
     if (reportData && reportData.items.length > 0) {
       const activeItem = reportData.items[0];
       saveReportToHistory(activeItem.report, activeItem.participant.alias);
-      setPersonalHistory(getPersonalHistory());
     }
+    const now = Date.now();
+    const history = getPersonalHistory();
+    const validHistory = history.filter(
+      (h) => new Date(h.date).getTime() < now - 10000
+    );
+    const decoded = challengeParam ? decodeChallengePayload(challengeParam) : null;
 
-    if (challengeParam) {
-      const decoded = decodeChallengePayload(challengeParam);
+    queueMicrotask(() => {
+      setSavedData(reportData);
+      setPersonalHistory(history);
+      setComparisonHistory(validHistory);
       if (decoded) {
         setChallengeData(decoded);
         setComparisonMode('challenge');
       }
-    }
+    });
   }, [challengeParam]);
 
-  const fallbackZeroData: SavedReportData = {
-    mode: 'individual',
+  const fallbackZeroData: SavedReport = {
+    timestamp: '',
+    mode: 'full',
     items: [
       {
         participant: { id: 'default', alias: 'Invitado', age: 25, sex: 'N', inputs: {} },
@@ -183,7 +188,7 @@ function InformeContent() {
     for (const [k, v] of Object.entries(report.axisResults)) {
       if (v) {
         // En modo exprés, excluir del radar visual los ejes no evaluados
-        if (isExpress && (!v.testResults || v.testResults.length === 0)) {
+        if (isExpress && !isAxisEvaluated(v)) {
           continue;
         }
         primaryAxisScores[k] = v.score;
@@ -399,7 +404,7 @@ function InformeContent() {
                 <span>EVALUACIÓN PARCIAL · {measuredAxesCount} DE 6 EJES EVALUADOS</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
-                Perfil Exprés
+                Reto Exprés
               </h1>
               <p className="text-sm font-medium text-slate-300">
                 {participant.alias} ({participant.age} años) · Chequeo Exprés ({measuredAxesCount} de 6 ejes evaluados)
@@ -408,7 +413,7 @@ function InformeContent() {
 
             <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-4 text-center sm:text-right shrink-0">
               <span className="text-[11px] uppercase tracking-wider text-slate-300 block">
-                Puntuación Media ({measuredAxesCount} {measuredAxesCount === 1 ? 'eje' : 'ejes'})
+                Media de las 3 pruebas (omitida = 0)
               </span>
               <div className="flex items-baseline justify-center sm:justify-end gap-1">
                 <span className="text-4xl font-mono font-black text-amber-400 tabular-nums">
@@ -428,7 +433,7 @@ function InformeContent() {
                 <span>⚡</span> Evaluación Rápida Completada
               </p>
               <p className="leading-relaxed text-slate-300">
-                Has completado las 3 pruebas clave de agilidad, fuerza inferior y equilibrio postural.
+                Has completado {report.completedCount} de 3 pruebas clave (fuerza inferior, equilibrio y agilidad).{report.completedCount < 3 ? ' Las omitidas cuentan 0 y entran en la media.' : ''}
               </p>
             </div>
             <div className="space-y-1 bg-white/5 p-3.5 rounded-xl border border-white/10">
@@ -460,6 +465,9 @@ function InformeContent() {
             <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-4 text-center sm:text-right shrink-0">
               <span className="text-[11px] uppercase tracking-wider text-slate-300 block">
                 Puntuación Media
+              </span>
+              <span className="text-[10px] text-slate-400 block mt-0.5">
+                Media de los 6 ejes (3 pruebas por eje, omitidas = 0). Valor redondeado.
               </span>
               <div className="flex items-baseline justify-center sm:justify-end gap-1">
                 <span className="text-4xl font-mono font-black text-sky-400 tabular-nums">
@@ -504,7 +512,7 @@ function InformeContent() {
               <span>Mapa Biomotor de 6 Ejes</span>
             </h2>
             <p className="text-xs text-[#CBD5E1] mt-0.5">
-              Compara tus resultados con la Zona Saludable Motriz (45–75 pts) o superpón a otro miembro.
+              Compara tus resultados con la referencia orientativa (45–75 pts) o superpón a otro miembro.
             </p>
           </div>
 
@@ -532,8 +540,8 @@ function InformeContent() {
                       Familia: {item.participant.alias}
                     </option>
                   ))}
-              {personalHistory
-                .filter((h) => h.alias !== participant.alias || new Date(h.date).getTime() < Date.now() - 10000)
+              {comparisonHistory
+                .filter((h) => h.alias !== participant.alias)
                 .slice(0, 3)
                 .map((h) => (
                   <option key={`comp-hist-${h.id}`} value={`history_${h.id}`}>
@@ -562,7 +570,7 @@ function InformeContent() {
             <span>Comparte tu Radar o Desafía a tu Entorno</span>
           </h3>
           <p className="text-xs text-slate-600">
-            Exporta tu tarjeta gráfica PNG para WhatsApp/Instagram sin servidores ni marcas de agua.
+            Exporta tu tarjeta gráfica PNG para WhatsApp/Instagram generada en tu dispositivo.
           </p>
         </div>
 
@@ -718,7 +726,7 @@ function InformeContent() {
             const ax = report.axisResults?.[axisId];
             if (!ax) return null;
             const catTheme = CATEGORY_THEMES[axisId];
-            const isUnmeasured = isExpress && (!ax.testResults || ax.testResults.length === 0);
+            const isUnmeasured = isExpress && !isAxisEvaluated(ax);
 
             return (
               <div

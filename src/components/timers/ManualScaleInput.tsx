@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Check, CheckCircle2, Minus, Plus, Ruler } from 'lucide-react';
+import { CheckCircle2, Minus, Plus, Ruler } from 'lucide-react';
 import { VisualScaleOption } from '../../types/radar-motor';
 
 interface ManualScaleInputProps {

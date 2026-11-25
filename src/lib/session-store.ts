@@ -1,7 +1,6 @@
 'use client';
 
 import { EvaluationReport, Sex, TestId } from '../types/radar-motor';
-import { ALL_AXIS_IDS, AXES_CONFIG, TESTS_CATALOG } from '../data/tests-catalog';
 
 export interface Participant {
   id: string;
@@ -31,7 +30,7 @@ export interface SavedReport {
 
 export interface ClassroomStudent {
   id: string;
-  alias: string; // Ej: "Alumno #01" (RGPD estricto: sin nombres ni apellidos)
+  alias: string; // Ej: "Alumno #01" (sin nombres ni apellidos reales)
   age: number;
   sex: Sex;
   inputs: Partial<Record<TestId, number | null>>;
@@ -151,7 +150,7 @@ export function clearClassroomSession(): void {
 
 /**
  * Genera el contenido de texto CSV anónimo y compatible con Excel/Sheets con los resultados del aula.
- * RGPD Estricto: solo exporta alias numéricos, edad, sexo, puntuaciones globales y por eje.
+ * Exportación segura: solo exporta alias numéricos, edad, sexo, puntuaciones globales y por eje.
  */
 export function generateClassroomCSVContent(session: ClassroomSession): string {
   const headers = [

@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { NORMATIVE_CURVES } from '../data/normative-curves';
 import { ALL_TEST_IDS } from '../data/tests-catalog';
-import { AgeBracket, Sex } from '../types/radar-motor';
+import { AgeBracket } from '../types/radar-motor';
 
 describe('3.2: Integridad y Reproducibilidad de Curvas Normativas (792 baremos)', () => {
   const AGE_BRACKETS: AgeBracket[] = [
     '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17',
     '18-20', '21-30', '31-40', '41-50', '51-60', '61-64', '65-69', '70-74', '75-79', '80+'
   ];
-  const SEXES: Sex[] = ['M', 'F'];
+  const SEXES: Array<'M' | 'F'> = ['M', 'F'];
 
   it('existen exactamente 18 pruebas x 22 tramos de edad x 2 sexos = 792 curvas normativas', () => {
     let curveCount = 0;

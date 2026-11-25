@@ -4,7 +4,6 @@ import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
-  Activity,
   ArrowRight,
   Clock,
   GraduationCap,
@@ -14,7 +13,6 @@ import {
   ShieldCheck,
   Sparkles,
   Users,
-  Zap,
 } from 'lucide-react';
 import { LivingRoomKit } from '../components/kit/LivingRoomKit';
 import { CATEGORY_THEMES } from '../data/category-theme';
@@ -59,7 +57,7 @@ function HomeContent() {
       <section className="text-center space-y-5">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold bg-white text-[#1D4ED8] border border-blue-200 shadow-xs">
           <ShieldCheck className="h-4 w-4 text-[#059669]" />
-          <span>100% Client-Side · Cero Servidores · Máxima Privacidad RGPD</span>
+          <span>Cálculo en tu dispositivo · Sin registro</span>
         </div>
 
         <div className="space-y-2">
@@ -74,7 +72,7 @@ function HomeContent() {
         </div>
 
         <p className="text-lg sm:text-2xl font-semibold text-[#0F172A] max-w-3xl mx-auto leading-relaxed">
-          Tu mapa de salud motriz en casa. 18 pruebas seguras, de 6 a 80+ años, 100% anónimo.
+          Tu mapa motriz en casa. 18 pruebas seguras, de 6 a 80+ años, sin registro.
         </p>
         <p className="text-sm text-stone-600 max-w-xl mx-auto">
           Evalúa fuerza, equilibrio, movilidad y coordinación sin aparatos costosos. Baremos normativos universales de 6 a 80+ años.
@@ -304,10 +302,10 @@ function HomeContent() {
           </span>
           <div>
             <h4 className="text-sm font-extrabold text-[#0F172A]">
-              Privacidad Absoluta Garantizada por Arquitectura
+              Tus datos se calculan en tu dispositivo
             </h4>
             <p className="text-xs text-stone-600">
-              Ningún dato viaja a internet. Todo se calcula en la memoria de tu propio dispositivo. Cumplimiento estricto del RGPD.
+              Los cálculos se hacen en tu dispositivo y la app no pide registro. Si compartes un enlace de reto o una tarjeta, esa información sale de tu dispositivo.
             </p>
           </div>
         </div>

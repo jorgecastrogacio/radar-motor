@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { ALL_AXIS_IDS, EXPRESS_TEST_IDS } from '../src/data/tests-catalog';
 import { evaluateFullReport } from '../src/lib/scoring-engine';
 import {
   ClassroomSession,

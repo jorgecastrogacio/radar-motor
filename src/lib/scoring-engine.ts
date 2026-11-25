@@ -13,6 +13,11 @@ import {
 import { ALL_AXIS_IDS, AXES_CONFIG, EXPRESS_TEST_IDS, TESTS_CATALOG } from '../data/tests-catalog';
 import { NORMATIVE_CURVES } from '../data/normative-curves';
 
+/** Determina si un eje ha sido efectivamente evaluado (cuenta con al menos una prueba no omitida con valor válido) */
+export function isAxisEvaluated(axisResult?: AxisResult): boolean {
+  return !!axisResult?.testResults && axisResult.testResults.some((tr) => !tr.skipped && tr.rawValue !== null);
+}
+
 /**
  * Mapea cualquier edad numérica a su corte exacto entre los 22 definidos.
  * Clamping: edades menores de 6 se evalúan con el baremo '6', y 80 o más con '80+'.

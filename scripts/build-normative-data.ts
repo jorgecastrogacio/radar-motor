@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { AgeBracket, NormativeCurve, Sex, TestId } from '../src/types/radar-motor';
+import { AgeBracket, NormativeCurve, TestId } from '../src/types/radar-motor';
 import { TESTS_CATALOG } from '../src/data/tests-catalog';
 
 const AGE_BRACKETS: AgeBracket[] = [

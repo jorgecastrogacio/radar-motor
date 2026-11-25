@@ -1,4 +1,5 @@
 import { AxisId, EvaluationReport } from '../types/radar-motor';
+import { isAxisEvaluated } from '../lib/scoring-engine';
 
 export interface MotorArchetype {
   id: string;
@@ -141,13 +142,7 @@ export function determineArchetype(report: EvaluationReport): MotorArchetype | n
     return null;
   }
 
-  // 3. Si la media global es menor a 35 puntos (con tests completados en modo completo), asignar Semilla en Marcha
-  if (report.globalAverage < 35) {
-    return ARCHETYPES.semilla_en_marcha;
-  }
-
-  // 4. Extraer puntuaciones de ejes evaluados
-  const evaluatedAxes: { axisId: AxisId; score: number }[] = [];
+  // 3. En modo completo, los 6 ejes deben tener al menos una prueba no omitida con valor válido
   const axisIds: AxisId[] = [
     'lower_body_strength',
     'core_upper_strength',
@@ -156,6 +151,26 @@ export function determineArchetype(report: EvaluationReport): MotorArchetype | n
     'coordination_agility',
     'aerobic_stability',
   ];
+
+  let evaluatedAxesCount = 0;
+  for (const axisId of axisIds) {
+    const axisRes = report.axisResults?.[axisId];
+    if (isAxisEvaluated(axisRes)) {
+      evaluatedAxesCount++;
+    }
+  }
+
+  if (evaluatedAxesCount < 6) {
+    return null;
+  }
+
+  // 4. Si la media global es menor a 35 puntos (con los 6 ejes evaluados), asignar Semilla en Marcha
+  if (report.globalAverage < 35) {
+    return ARCHETYPES.semilla_en_marcha;
+  }
+
+  // 5. Extraer puntuaciones de ejes evaluados
+  const evaluatedAxes: { axisId: AxisId; score: number }[] = [];
 
   for (const axisId of axisIds) {
     const axisRes = report.axisResults?.[axisId];

@@ -1,36 +1,26 @@
 'use client';
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  Activity,
   AlertTriangle,
-  ArrowLeft,
   ArrowRight,
-  Check,
   CheckCircle2,
   ChevronLeft,
-  ChevronRight,
   Clock,
   Layers,
   Plus,
-  RotateCcw,
   ShieldAlert,
-  ShieldCheck,
   Sparkles,
   Trash2,
-  UserCheck,
-  Users,
-  XCircle,
 } from 'lucide-react';
 import {
   ALL_TEST_IDS,
-  AXES_CONFIG,
   EXPRESS_TEST_IDS,
   TESTS_CATALOG,
 } from '../../data/tests-catalog';
 import { CATEGORY_THEMES } from '../../data/category-theme';
-import { AgeBracket, Sex, TestId } from '../../types/radar-motor';
+import { Sex, TestId } from '../../types/radar-motor';
 import { evaluateFullReport, getAgeBracket } from '../../lib/scoring-engine';
 import {
   ActiveSession,
@@ -47,7 +37,7 @@ import { CountdownTimer } from '../../components/timers/CountdownTimer';
 import { StopwatchTimer } from '../../components/timers/StopwatchTimer';
 import { ManualScaleInput } from '../../components/timers/ManualScaleInput';
 import { SafetyTrafficLight } from '../../data/first-aid';
-import { decodeChallengePayload, ChallengePayload } from '../../lib/share-codec';
+import { decodeChallengePayload } from '../../lib/share-codec';
 
 function EvaluarContent() {
   const router = useRouter();
@@ -65,20 +55,11 @@ function EvaluarContent() {
   const [isKitModalOpen, setIsKitModalOpen] = useState(false);
 
   // Desafío recibido (?reto=...)
-  const [challengeData, setChallengeData] = useState<ChallengePayload | null>(null);
-  const [isChallengeCorrupt, setIsChallengeCorrupt] = useState(false);
-
-  useEffect(() => {
-    if (retoParam) {
-      const decoded = decodeChallengePayload(retoParam);
-      if (decoded) {
-        setChallengeData(decoded);
-        setIsChallengeCorrupt(false);
-      } else {
-        setChallengeData(null);
-        setIsChallengeCorrupt(true);
-      }
-    }
+  const { challengeData, isChallengeCorrupt } = React.useMemo(() => {
+    if (!retoParam) return { challengeData: null, isChallengeCorrupt: false };
+    const decoded = decodeChallengePayload(retoParam);
+    if (decoded) return { challengeData: decoded, isChallengeCorrupt: false };
+    return { challengeData: null, isChallengeCorrupt: true };
   }, [retoParam]);
 
   // Participantes
@@ -104,11 +85,14 @@ function EvaluarContent() {
   // Sesión previa guardada detectada (sin forzar salto a paso 3 ni descartar en silencio)
   const [savedSession, setSavedSession] = useState<ActiveSession | null>(null);
   const [hasResolvedSavedPrompt, setHasResolvedSavedPrompt] = useState(false);
+  const isEvaluationCompleted = useRef(false);
 
   useEffect(() => {
     const saved = loadActiveSession();
     if (saved && saved.participants.length > 0) {
-      setSavedSession(saved);
+      queueMicrotask(() => {
+        setSavedSession(saved);
+      });
     }
   }, []);
 
@@ -136,7 +120,7 @@ function EvaluarContent() {
 
   // Guardar sesión activa ante cualquier cambio durante la ejecución (paso 3)
   useEffect(() => {
-    if (step === 3) {
+    if (step === 3 && !isEvaluationCompleted.current) {
       saveActiveSession({
         mode,
         safetyStatus: safetyStatus === 'red' ? 'amber' : safetyStatus,
@@ -219,6 +203,7 @@ function EvaluarContent() {
   };
 
   const handleCompleteEvaluation = (finalParticipants?: Participant[]) => {
+    isEvaluationCompleted.current = true;
     const participantsToEvaluate = finalParticipants || participants;
     // Calcular informes con scoring engine
     const evaluationMode = mode === 'express' ? 'express' : 'full';
@@ -424,10 +409,15 @@ function EvaluarContent() {
                         type="number"
                         min={6}
                         max={99}
-                        value={p.age}
-                        onChange={(e) =>
-                          handleUpdateParticipant(idx, 'age', Math.max(6, Math.min(99, Number(e.target.value))))
-                        }
+                        value={p.age === 0 ? '' : p.age}
+                        onChange={(e) => {
+                          const val = e.target.value === '' ? 0 : Math.max(0, Math.min(99, parseInt(e.target.value, 10) || 0));
+                          handleUpdateParticipant(idx, 'age', val);
+                        }}
+                        onBlur={() => {
+                          const clamped = Math.max(6, Math.min(99, p.age || 6));
+                          handleUpdateParticipant(idx, 'age', clamped);
+                        }}
                         className="w-full min-h-[46px] px-3.5 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 tabular-nums"
                       />
                     </div>

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { saveActiveSession, loadActiveSession, clearActiveSession } from '../lib/session-store';
-import { ActiveSession } from '../types/radar-motor';
+import { saveActiveSession, loadActiveSession, clearActiveSession, ActiveSession } from '../lib/session-store';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -13,8 +12,12 @@ const mockLocalStorage = {
   clear: () => { Object.keys(storage).forEach(k => delete storage[k]); },
 };
 
-(globalThis as any).window = globalThis;
-(globalThis as any).localStorage = mockLocalStorage;
+const customGlobal = globalThis as unknown as {
+  window: unknown;
+  localStorage: unknown;
+};
+customGlobal.window = globalThis;
+customGlobal.localStorage = mockLocalStorage;
 
 describe('2.1: Sesiones Activas y Modos', () => {
   beforeEach(() => {

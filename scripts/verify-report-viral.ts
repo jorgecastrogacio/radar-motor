@@ -1,14 +1,13 @@
-import { ARCHETYPES, determineArchetype, MotorArchetype } from '../src/data/archetypes';
-import { MICRO_CHALLENGES, getRecommendedMicroChallenges, MicroChallenge } from '../src/data/micro-challenges';
+import { ARCHETYPES, determineArchetype } from '../src/data/archetypes';
+import { MICRO_CHALLENGES, getRecommendedMicroChallenges } from '../src/data/micro-challenges';
 import {
   encodeChallengePayload,
   decodeChallengePayload,
-  createChallengePayloadFromReport,
   buildChallengeUrl,
   generateNinetyDayReminderICS,
   ChallengePayload,
 } from '../src/lib/share-codec';
-import { AxisId, EvaluationReport } from '../src/types/radar-motor';
+import { AxisId, EvaluationReport, AxisResult } from '../src/types/radar-motor';
 import { ALL_AXIS_IDS } from '../src/data/tests-catalog';
 
 let passed = 0;
@@ -53,14 +52,27 @@ for (const id of expectedArchetypeIds) {
 console.log('2. Verificando lógica determineArchetype...');
 
 const mockBaseReport = (globalAvg: number, axisScores: Record<AxisId, number>): EvaluationReport => {
-  const axisResults = {} as any;
+  const axisResults: Partial<Record<AxisId, AxisResult>> = {};
   for (const [axisId, score] of Object.entries(axisScores)) {
-    axisResults[axisId] = {
-      axisId,
+    axisResults[axisId as AxisId] = {
+      axisId: axisId as AxisId,
       name: axisId,
       score,
       level: 'Sólido',
-      testResults: [],
+      testResults: [
+        {
+          testId: 'sit_to_stand_5x',
+          name: axisId,
+          rawValue: 10,
+          unit: 's',
+          direction: 'lower_is_better',
+          score,
+          level: 'Sólido',
+          zsmStatus: 'in_zsm',
+          skipped: false,
+          curve: { p10: 15, p25: 12, zsm_min: 9, zsm_opt: 7, p95: 5 },
+        },
+      ],
     };
   }
   return {
@@ -143,7 +155,7 @@ assert(recs.length === 2, 'getRecommendedMicroChallenges debe devolver 2 micro-r
 assert(recs[0].id !== recs[1].id, 'Los dos micro-retos no deben ser repetidos');
 
 // Comprobación con puntuación flotante típica de modo exprés (ej. 73.5)
-const expressFloatReport: any = {
+const expressFloatReport: EvaluationReport = {
   ...lowerReport,
   mode: 'express',
   globalScore: 73.5,

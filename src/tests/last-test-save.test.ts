@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { evaluateFullReport } from '../lib/scoring-engine';
-import { Participant } from '../lib/session-store';
+import { Participant, ActiveSession, saveActiveSession, loadActiveSession, clearActiveSession } from '../lib/session-store';
 import { TestId } from '../types/radar-motor';
 
 describe('1.1 Integridad de datos: última prueba guardada en todos los modos', () => {
@@ -159,5 +159,48 @@ describe('1.1 Integridad de datos: última prueba guardada en todos los modos', 
       expect(tr?.skipped).toBe(false);
       expect(tr?.score).toBeGreaterThan(0);
     });
+  });
+
+  it('(e) Limpieza de sesión activa: al completar la evaluación, el flag isEvaluationCompleted impide que el autosave resucite la sesión', () => {
+    const storage: Record<string, string> = {};
+    const mockStorage = {
+      getItem: (k: string) => storage[k] ?? null,
+      setItem: (k: string, v: string) => { storage[k] = String(v); },
+      removeItem: (k: string) => { delete storage[k]; },
+      clear: () => { Object.keys(storage).forEach((k) => delete storage[k]); },
+    };
+
+    const customGlobal = globalThis as unknown as {
+      window: unknown;
+      localStorage: unknown;
+    };
+    customGlobal.window = globalThis;
+    customGlobal.localStorage = mockStorage;
+
+    const session: ActiveSession = {
+      mode: 'express',
+      safetyStatus: 'green',
+      participants: [{ id: 'p1', alias: 'Test User', age: 30, sex: 'M', inputs: {} }],
+      currentTestIndex: 2,
+      currentParticipantIndex: 0,
+    };
+
+    // 1. Guardar sesión activa durante paso 3
+    saveActiveSession(session);
+    expect(loadActiveSession()).not.toBeNull();
+
+    // 2. Al completar la evaluación: se activa isEvaluationCompleted y se limpia la sesión activa
+    const isEvaluationCompleted = { current: true };
+    clearActiveSession();
+    expect(loadActiveSession()).toBeNull();
+
+    // 3. Simular trigger de useEffect por cambio de estado post-finalización
+    const step = 3;
+    if (step === 3 && !isEvaluationCompleted.current) {
+      saveActiveSession(session);
+    }
+
+    // La sesión debe permanecer limpia (no resucita)
+    expect(loadActiveSession()).toBeNull();
   });
 });

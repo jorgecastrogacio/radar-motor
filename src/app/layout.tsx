@@ -5,9 +5,9 @@ import { Header } from '../components/layout/Header';
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://radar-motor.vercel.app';
 
 export const metadata: Metadata = {
-  title: 'RADAR MOTOR — Comprueba tu mapa de salud motriz en casa',
+  title: 'RADAR MOTOR — Comprueba tu mapa motriz en casa',
   description:
-    'Autoevaluación motriz 100% client-side para todas las edades (6 a 80+ años). Baremos científicos, sin registro y cumplimiento estricto RGPD.',
+    'Autoevaluación motriz para todas las edades (6 a 80+ años). Baremos de referencia pendientes de validación, sin registro ni envío de datos.',
   keywords: [
     'radar motor',
     'autoevaluación motriz',
@@ -23,9 +23,9 @@ export const metadata: Metadata = {
     canonical: siteUrl,
   },
   openGraph: {
-    title: 'RADAR MOTOR — Comprueba tu mapa de salud motriz en casa',
+    title: 'RADAR MOTOR — Comprueba tu mapa motriz en casa',
     description:
-      'Descubre tu arquetipo motor y tu radar de 6 capacidades con pruebas validadas desde el salón. Cero registro, coste 0 €.',
+      'Descubre tu arquetipo motor y tu radar de 6 capacidades con un protocolo orientativo desde el salón. Sin registro.',
     url: siteUrl,
     siteName: 'RADAR MOTOR',
     locale: 'es_ES',
@@ -33,9 +33,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'RADAR MOTOR — Comprueba tu mapa de salud motriz en casa',
+    title: 'RADAR MOTOR — Comprueba tu mapa motriz en casa',
     description:
-      'Descubre tu arquetipo motor y tu radar de 6 capacidades desde casa. 100% privado en tu navegador.',
+      'Descubre tu arquetipo motor y tu radar de 6 capacidades desde casa. Cálculo en tu dispositivo · Sin registro.',
   },
   icons: {
     icon: '/icon.svg',

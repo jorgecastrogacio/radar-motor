@@ -4,6 +4,7 @@ import React from 'react';
 import { EvaluationReport } from '../../types/radar-motor';
 import { determineArchetype } from '../../data/archetypes';
 import { ALL_AXIS_IDS } from '../../data/tests-catalog';
+import { isAxisEvaluated } from '../../lib/scoring-engine';
 import { Printer } from 'lucide-react';
 
 export interface ParticipantReportEntry {
@@ -107,6 +108,13 @@ export const FamilyPassportPrint: React.FC<FamilyPassportPrintProps> = ({
                     {isZero ? 'sin datos' : '/100 (media)'}
                   </span>
                 </div>
+                {!isZero && (
+                  <p className="text-[9px] text-slate-400 mt-0.5">
+                    {p.report.mode === 'express'
+                      ? 'Media de 3 pruebas; omitidas = 0'
+                      : 'Media de 6 ejes (3 pruebas por eje); omitidas = 0'}
+                  </p>
+                )}
                 <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 truncate max-w-full">
                   {archetype
                     ? archetype.name
@@ -140,19 +148,26 @@ export const FamilyPassportPrint: React.FC<FamilyPassportPrintProps> = ({
                   <td className="py-2.5 px-3 font-medium text-slate-800">{row.name}</td>
                   {participants.map((p, pIdx) => {
                     const axisRes = p.report.axisResults?.[row.id];
+                    const isEvaluated = isAxisEvaluated(axisRes);
                     const score = axisRes?.score ?? 0;
-                    const inZsm = score >= 45 && score <= 75;
+                    const inZsm = isEvaluated && score >= 45 && score <= 75;
                     return (
                       <td key={`cell-${row.id}-${pIdx}`} className="py-2.5 px-3 text-center">
                         <span className="font-bold text-slate-900 tabular-nums">
-                          {Math.round(score)} pts
+                          {isEvaluated ? `${Math.round(score)} pts` : '-'}
                         </span>
                         <div className="text-[10px] text-slate-500">
-                          {axisRes?.level || 'Base'}
-                          {inZsm && (
-                            <span className="ml-1 text-emerald-600 font-bold" title="Zona Saludable">
-                              ✓
-                            </span>
+                          {isEvaluated ? (
+                            <>
+                              {axisRes?.level || 'Base'}
+                              {inZsm && (
+                                <span className="ml-1 text-emerald-600 font-bold" title="referencia orientativa (45-75 pts)">
+                                  ✓
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            'Sin evaluar'
                           )}
                         </div>
                       </td>
@@ -176,13 +191,13 @@ export const FamilyPassportPrint: React.FC<FamilyPassportPrintProps> = ({
           </p>
         </div>
 
-        {/* Pie de Pasaporte y Cumplimiento RGPD */}
+        {/* Pie de Pasaporte y Privacidad */}
         <div className="border-t border-slate-200 pt-3 flex items-center justify-between text-[10px] text-slate-500">
           <div>
             <p className="font-semibold text-slate-700">
-              RADAR MOTOR · Baremos Normativos Basados en Evidencia Científica
+              RADAR MOTOR · Baremos de referencia pendientes de validación
             </p>
-            <p>100% en tu navegador · Cero servidores · Cero rastreo de datos personales</p>
+            <p>Cálculo en tu dispositivo · Sin registro</p>
           </div>
           <div className="text-right">
             <p className="font-mono font-bold text-slate-800">radar-motor.vercel.app</p>

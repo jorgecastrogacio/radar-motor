@@ -101,13 +101,24 @@ export function createChallengePayloadFromReport(
     }
   }
 
+  let archetypeId: string;
+  if (archetype) {
+    archetypeId = archetype.id;
+  } else if (report.mode === 'express') {
+    archetypeId = 'parcial';
+  } else if (report.completedCount > 0) {
+    archetypeId = 'incompleta';
+  } else {
+    archetypeId = 'sin_datos';
+  }
+
   return {
     v: 2,
     mode: report.mode === 'express' ? 'express' : 'full',
     alias,
     age: report.age,
     globalAverage: Math.round(report.globalAverage),
-    archetypeId: archetype ? archetype.id : (report.mode === 'express' ? 'parcial' : 'sin_datos'),
+    archetypeId,
     axisScores,
   };
 }
@@ -196,6 +207,56 @@ export function downloadNinetyDayReminderICS(alias = 'Tu Radar Motor'): void {
 }
 
 /**
+ * Construye un objeto HistoryEntry a partir de un EvaluationReport y alias.
+ */
+export function createHistoryEntryFromReport(
+  report: EvaluationReport,
+  alias = 'Tú'
+): HistoryEntry {
+  const archetype = determineArchetype(report);
+  const axisScores: Record<AxisId, number> = {
+    lower_body_strength: 0,
+    core_upper_strength: 0,
+    balance_posture: 0,
+    mobility_flexibility: 0,
+    coordination_agility: 0,
+    aerobic_stability: 0,
+  };
+
+  if (report.axisResults) {
+    for (const [k, v] of Object.entries(report.axisResults)) {
+      if (v && typeof v.score === 'number') {
+        axisScores[k as AxisId] = Math.round(v.score);
+      }
+    }
+  }
+
+  let archetypeId: string;
+  if (archetype) {
+    archetypeId = archetype.id;
+  } else if (report.mode === 'express') {
+    archetypeId = 'parcial';
+  } else if (report.completedCount > 0) {
+    archetypeId = 'incompleta';
+  } else {
+    archetypeId = 'sin_datos';
+  }
+
+  return {
+    id: `hist_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    date: new Date().toISOString(),
+    alias,
+    age: report.age,
+    ageBracket: report.ageBracket,
+    sex: report.sex,
+    globalScore: Math.round(report.globalScore),
+    archetypeId,
+    axisScores,
+    mode: report.mode,
+  };
+}
+
+/**
  * Guarda un informe en el historial personal de este dispositivo (localStorage).
  */
 export function saveReportToHistory(
@@ -204,36 +265,7 @@ export function saveReportToHistory(
 ): HistoryEntry | null {
   if (typeof window === 'undefined') return null;
   try {
-    const archetype = determineArchetype(report);
-    const axisScores: Record<AxisId, number> = {
-      lower_body_strength: 0,
-      core_upper_strength: 0,
-      balance_posture: 0,
-      mobility_flexibility: 0,
-      coordination_agility: 0,
-      aerobic_stability: 0,
-    };
-
-    if (report.axisResults) {
-      for (const [k, v] of Object.entries(report.axisResults)) {
-        if (v && typeof v.score === 'number') {
-          axisScores[k as AxisId] = Math.round(v.score);
-        }
-      }
-    }
-
-    const entry: HistoryEntry = {
-      id: `hist_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      date: new Date().toISOString(),
-      alias,
-      age: report.age,
-      ageBracket: report.ageBracket,
-      sex: report.sex,
-      globalScore: Math.round(report.globalScore),
-      archetypeId: archetype ? archetype.id : (report.mode === 'express' ? 'express_parcial' : 'sin_datos'),
-      axisScores,
-      mode: report.mode,
-    };
+    const entry = createHistoryEntryFromReport(report, alias);
 
     const existing = getPersonalHistory();
     // Guardar hasta 10 entradas históricas más recientes

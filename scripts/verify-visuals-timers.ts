@@ -1,6 +1,5 @@
 import { ALL_TEST_IDS } from '../src/data/tests-catalog';
 import { audioSynth } from '../src/lib/audio-synth';
-import { TestId } from '../src/types/radar-motor';
 
 console.log('======================================================================');
 console.log('  RADAR MOTOR — VERIFICACIÓN AUTOMÁTICA VISUALS & TIMERS (FASE 3)    ');

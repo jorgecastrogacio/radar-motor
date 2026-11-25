@@ -8,7 +8,7 @@ import { TestIllustration } from '../illustrations/TestIllustration';
 import { CountdownTimer } from './CountdownTimer';
 import { StopwatchTimer } from './StopwatchTimer';
 import { ManualScaleInput } from './ManualScaleInput';
-import { CheckCircle2, ChevronRight, Info, ShieldAlert, Sparkles } from 'lucide-react';
+import { CheckCircle2, ChevronRight, Info, ShieldAlert } from 'lucide-react';
 
 interface TestExecutionPanelProps {
   initialTestId?: TestId;
@@ -131,7 +131,7 @@ export function TestExecutionPanel({
               </h3>
             </div>
             <p className="text-xs sm:text-sm text-slate-600 pl-8">
-              Protocolo estándar validado para hogar y escuela · Medición en <strong>{currentTest.unit}</strong>
+              Protocolo orientativo para hogar y escuela · Medición en <strong>{currentTest.unit}</strong>
             </p>
           </div>
 

@@ -37,7 +37,13 @@ export function SosModal({ isOpen, onClose }: SosModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-      setIsUnlocked(false); // Resetear estado de seguridad al abrir
+      const timer = setTimeout(() => {
+        setIsUnlocked(false); // Resetear estado de seguridad al abrir
+      }, 0);
+      return () => {
+        clearTimeout(timer);
+        document.body.style.overflow = 'unset';
+      };
     } else {
       document.body.style.overflow = 'unset';
     }

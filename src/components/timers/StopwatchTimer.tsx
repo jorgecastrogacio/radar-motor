@@ -54,7 +54,10 @@ export function StopwatchTimer({
     } else {
       audioSynth.playStartBeep();
       startTimeRef.current = performance.now();
-      setStatus('running');
+      const timer = setTimeout(() => {
+        setStatus('running');
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [status, prepCount]);
 

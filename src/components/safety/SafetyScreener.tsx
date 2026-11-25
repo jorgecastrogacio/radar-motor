@@ -6,12 +6,10 @@ import {
   AlertTriangle,
   ArrowRight,
   CheckCircle,
-  HeartHandshake,
   RotateCcw,
   ShieldCheck,
-  Stethoscope,
 } from 'lucide-react';
-import { SAFETY_QUESTIONS, SafetyQuestion, SafetyTrafficLight } from '../../data/first-aid';
+import { SAFETY_QUESTIONS, SafetyTrafficLight } from '../../data/first-aid';
 
 interface SafetyScreenerProps {
   onProceed?: (trafficLight: SafetyTrafficLight) => void;
@@ -58,7 +56,7 @@ export function SafetyScreener({ onProceed }: SafetyScreenerProps) {
           Antes de empezar: Cuestionario de Seguridad
         </h2>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
-          Responde a estas 3 breves preguntas para garantizar que realizas las pruebas con total tranquilidad y bienestar adaptado a tu condición.
+          Responde a estas 3 breves preguntas para confirmar que realizas las pruebas con total tranquilidad y bienestar adaptado a tu condición.
         </p>
       </div>
 

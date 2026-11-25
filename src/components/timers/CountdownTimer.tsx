@@ -56,7 +56,10 @@ export function CountdownTimer({
       return () => clearTimeout(timer);
     } else {
       audioSynth.playStartBeep();
-      setStatus('running');
+      const timer = setTimeout(() => {
+        setStatus('running');
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [status, prepCount]);
 

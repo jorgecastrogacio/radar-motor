@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'RADAR MOTOR — Autoevaluación Motriz Familiar y Escolar',
     short_name: 'Radar Motor',
     description:
-      'Autoevaluación motriz 100% en cliente, científica, familiar y escolar. Cero registro, cero servidores y privacidad estricta RGPD.',
+      'Autoevaluación motriz para el hogar y la escuela. Cálculo en tu dispositivo, sin registro.',
     start_url: '/',
     display: 'standalone',
     background_color: '#0f172a',

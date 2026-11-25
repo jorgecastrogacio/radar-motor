@@ -120,7 +120,7 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
           />
         ))}
 
-        {/* 2. Sombra de la Zona Saludable Motriz (ZSM 45–75%) */}
+        {/* 2. Sombra de la referencia orientativa (ZSM 45–75%) */}
         <polygon
           points={zsmOuterPoints}
           className={isDark ? 'fill-emerald-500/15 stroke-emerald-400/50' : 'fill-emerald-50 stroke-emerald-300'}
@@ -135,7 +135,6 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
 
         {/* 3. Ejes radiales (del centro al vértice exterior) con color de categoría */}
         {RADAR_AXES.map((axis) => {
-          const theme = CATEGORY_THEMES[axis.id];
           const { x, y } = polarToCartesian(axis.angleDeg, maxRadius);
           return (
             <line
@@ -201,6 +200,7 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
           const theme = CATEGORY_THEMES[axis.id];
           const labelRadius = maxRadius + 28;
           const { x, y } = polarToCartesian(axis.angleDeg, labelRadius);
+          const hasScore = primarySeries.scores[axis.id] !== undefined;
           const score = primarySeries.scores[axis.id] ?? 0;
           const compScore = comparisonSeries?.scores[axis.id];
 
@@ -230,10 +230,10 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
                 y="15"
                 textAnchor={textAnchor}
                 className="text-[11px] font-extrabold tabular-nums"
-                fill={theme.colorText}
+                fill={hasScore ? theme.colorText : (isDark ? '#94A3B8' : '#64748B')}
                 dominantBaseline="central"
               >
-                {Math.round(score)} pts
+                {hasScore ? `${Math.round(score)} pts` : '- sin evaluar'}
                 {compScore !== undefined && (
                   <tspan fill={isDark ? '#FDE047' : '#EA580C'} fontWeight="bold" fontSize="10px">
                     {' '}
@@ -267,7 +267,7 @@ export const RadarChartSvg: React.FC<RadarChartSvgProps> = ({
 
         <div className="flex items-center gap-1.5">
           <span className="w-3.5 h-2 bg-emerald-300 border border-emerald-500 rounded-xs" />
-          <span>Zona Saludable (45–75 pts)</span>
+          <span>referencia orientativa (45–75 pts)</span>
         </div>
       </div>
     </div>

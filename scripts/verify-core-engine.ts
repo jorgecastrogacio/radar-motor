@@ -1,7 +1,7 @@
-import { ALL_AXIS_IDS, AXES_CONFIG, EXPRESS_TEST_IDS, TESTS_CATALOG } from '../src/data/tests-catalog';
+import { ALL_AXIS_IDS, EXPRESS_TEST_IDS, TESTS_CATALOG } from '../src/data/tests-catalog';
 import { NORMATIVE_CURVES } from '../src/data/normative-curves';
-import { calculateTestScore, evaluateFullReport, getAgeBracket, getCurve } from '../src/lib/scoring-engine';
-import { AgeBracket, AxisId, NormativeCurve, Sex, TestId } from '../src/types/radar-motor';
+import { evaluateFullReport, getCurve } from '../src/lib/scoring-engine';
+import { AgeBracket, AxisId, NormativeCurve, TestId } from '../src/types/radar-motor';
 
 const AGE_BRACKETS: AgeBracket[] = [
   '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17',
