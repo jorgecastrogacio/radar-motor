@@ -145,13 +145,18 @@ function EvaluarContent() {
   const currentParticipant = participants[safePartIndex] || participants[0];
 
   const handleSaveScore = (rawValue: number | null) => {
-    setParticipants((prev) => {
-      const copy = [...prev];
-      const p = { ...copy[currentParticipantIndex] };
-      p.inputs = { ...p.inputs, [currentTestId]: rawValue };
-      copy[currentParticipantIndex] = p;
-      return copy;
+    const updatedParticipants = participants.map((p, idx) => {
+      if (idx !== currentParticipantIndex) return p;
+      return {
+        ...p,
+        inputs: {
+          ...p.inputs,
+          [currentTestId]: rawValue,
+        },
+      };
     });
+
+    setParticipants(updatedParticipants);
 
     // En modo familia: avanzar al siguiente participante en ESTA misma prueba
     if (mode === 'family' && currentParticipantIndex < participants.length - 1) {
@@ -162,16 +167,17 @@ function EvaluarContent() {
         setCurrentTestIndex((prev) => prev + 1);
         setCurrentParticipantIndex(0); // Reiniciar turno al primer participante en la nueva prueba
       } else {
-        // Fin de la evaluación
-        handleCompleteEvaluation();
+        // Fin de la evaluación pasando explícitamente los participantes actualizados
+        handleCompleteEvaluation(updatedParticipants);
       }
     }
   };
 
-  const handleCompleteEvaluation = () => {
+  const handleCompleteEvaluation = (finalParticipants?: Participant[]) => {
+    const participantsToEvaluate = finalParticipants || participants;
     // Calcular informes con scoring engine
     const evaluationMode = mode === 'express' ? 'express' : 'full';
-    const reportItems = participants.map((p) => {
+    const reportItems = participantsToEvaluate.map((p) => {
       const report = evaluateFullReport(p.age, p.sex, p.inputs, evaluationMode);
       return { participant: p, report };
     });
