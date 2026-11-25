@@ -82,6 +82,13 @@ export const FamilyPassportPrint: React.FC<FamilyPassportPrintProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           {participants.map((p, idx) => {
             const archetype = determineArchetype(p.report);
+            const isZero = (p.report.completedCount ?? 0) === 0;
+            const measuredCount = p.report.mode === 'express'
+              ? (p.report.completedCount ?? 0)
+              : ALL_AXIS_IDS.filter(
+                  (ax) => (p.report.axisResults?.[ax]?.testResults?.filter((t) => !t.skipped && t.rawValue !== null).length ?? 0) > 0
+                ).length;
+
             return (
               <div
                 key={`member-summary-${idx}`}
@@ -93,12 +100,20 @@ export const FamilyPassportPrint: React.FC<FamilyPassportPrintProps> = ({
                 </p>
                 <div className="mt-1.5 flex items-baseline justify-center gap-1">
                   <span className="text-xl font-extrabold text-blue-600 tabular-nums">
-                    {Math.round(p.report.globalAverage)}
+                    {isZero ? '—' : Math.round(p.report.globalAverage)}
                   </span>
-                  <span className="text-[10px] text-slate-500">/100 (media)</span>
+                  <span className="text-[10px] text-slate-500">
+                    {isZero ? 'sin datos' : '/100 (media)'}
+                  </span>
                 </div>
                 <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 truncate max-w-full">
-                  {archetype ? archetype.name : p.report.mode === 'express' ? 'Evaluación Parcial' : 'Sin Datos'}
+                  {archetype
+                    ? archetype.name
+                    : isZero
+                    ? 'Sin datos suficientes'
+                    : p.report.mode === 'express'
+                    ? `Parcial (${measuredCount}/6 ejes)`
+                    : `Incompleta (${p.report.completedCount}/${p.report.totalTests})`}
                 </span>
               </div>
             );

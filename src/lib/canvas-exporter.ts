@@ -94,14 +94,15 @@ export function createRadarCardCanvas(
   );
 
   // Puntuación Media a la derecha
+  const isZeroData = (report.completedCount ?? 0) === 0;
   ctx.textAlign = 'right';
-  ctx.fillStyle = '#38bdf8';
+  ctx.fillStyle = isZeroData ? '#94a3b8' : '#38bdf8';
   ctx.font = '800 68px system-ui, -apple-system, sans-serif';
-  ctx.fillText(`${Math.round(report.globalAverage)}`, width - 105, 235);
+  ctx.fillText(isZeroData ? '—' : `${Math.round(report.globalAverage)}`, width - 105, 235);
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '600 20px system-ui, -apple-system, sans-serif';
-  ctx.fillText('/ 100 PUNTOS (MEDIA)', width - 105, 268);
+  ctx.fillText(isZeroData ? 'SIN CLASIFICAR' : '/ 100 PUNTOS (MEDIA)', width - 105, 268);
 
   // 3. Arquetipo Motor
   const archetypeY = isStory ? 330 : 320;
@@ -123,28 +124,38 @@ export function createRadarCardCanvas(
     ctx.font = '700 32px system-ui, -apple-system, sans-serif';
     ctx.fillText(archetype.name, 105, archetypeY + 68);
   } else {
-    ctx.fillStyle = 'rgba(234, 88, 12, 0.15)';
-    ctx.strokeStyle = '#ea580c';
+    const measuredAxesCount = report.mode === 'express'
+      ? (report.completedCount ?? 0)
+      : ALL_AXIS_IDS.filter(ax => (report.axisResults?.[ax]?.testResults?.filter(t => !t.skipped && t.rawValue !== null).length ?? 0) > 0).length;
+
+    ctx.fillStyle = isZeroData ? 'rgba(100, 116, 139, 0.15)' : 'rgba(234, 88, 12, 0.15)';
+    ctx.strokeStyle = isZeroData ? '#64748b' : '#ea580c';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.roundRect(70, archetypeY, width - 140, 84, 16);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = '#fdba74';
+    ctx.fillStyle = isZeroData ? '#94a3b8' : '#fdba74';
     ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
     ctx.fillText(
-      report.mode === 'express' ? 'EVALUACIÓN PARCIAL' : 'EVALUACIÓN INCOMPLETA',
+      isZeroData
+        ? 'SIN DATOS SUFICIENTES'
+        : report.mode === 'express'
+        ? 'EVALUACIÓN PARCIAL'
+        : 'EVALUACIÓN INCOMPLETA',
       105,
       archetypeY + 36
     );
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = '700 30px system-ui, -apple-system, sans-serif';
+    ctx.font = '700 28px system-ui, -apple-system, sans-serif';
     ctx.fillText(
-      report.mode === 'express'
-        ? 'Modo Exprés (3 de 6 ejes evaluados)'
-        : `${report.completedCount} de ${report.totalTests} pruebas realizadas`,
+      isZeroData
+        ? 'Sin pruebas registradas'
+        : report.mode === 'express'
+        ? `Modo Exprés (${measuredAxesCount} de 6 ejes evaluados)`
+        : `Evaluación Incompleta (${report.completedCount} de ${report.totalTests} pruebas)`,
       105,
       archetypeY + 68
     );
@@ -269,7 +280,17 @@ export function createRadarCardCanvas(
     ctx.textAlign = 'left';
     ctx.fillStyle = '#38bdf8';
     ctx.font = 'bold 26px system-ui, -apple-system, sans-serif';
-    ctx.fillText('💡 TU SUPERPODER MOTOR', 105, extraY + 50);
+    ctx.fillText(
+      archetype
+        ? '💡 TU SUPERPODER MOTOR'
+        : report.mode === 'express'
+        ? '⚡ EVALUACIÓN PARCIAL'
+        : isZeroData
+        ? 'ℹ️ SIN EVALUACIÓN'
+        : '📋 EVALUACIÓN EN CURSO',
+      105,
+      extraY + 50
+    );
 
     ctx.fillStyle = '#e2e8f0';
     ctx.font = '400 24px system-ui, -apple-system, sans-serif';
@@ -292,16 +313,38 @@ export function createRadarCardCanvas(
       ctx.fillText(line, x, currY);
     };
 
-    wrapText(archetype.strengthsText, 105, extraY + 95, width - 210, 36);
+    const mainText = archetype
+      ? archetype.strengthsText
+      : report.mode === 'express'
+      ? 'Has completado el Reto Exprés con pruebas de agilidad, equilibrio y fuerza inferior. Completa el Chequeo Completo (18 pruebas) para obtener tu Arquetipo Motor y desbloquear tu perfil biomotor 360°.'
+      : isZeroData
+      ? 'No se ha registrado ninguna prueba física en esta sesión. Completa las pruebas para generar tu radar motor y desbloquear tu arquetipo.'
+      : `Has completado ${report.completedCount} de ${report.totalTests} pruebas. Completa las pruebas restantes para desbloquear tu Arquetipo Motor.`;
+
+    wrapText(mainText, 105, extraY + 95, width - 210, 36);
 
     // Call to action en stories
     ctx.fillStyle = '#f59e0b';
     ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
-    ctx.fillText('🎯 RETO MOTOR:', 105, extraY + 185);
+    ctx.fillText(
+      archetype
+        ? '🎯 RETO MOTOR:'
+        : '🎯 SIGUIENTE PASO:',
+      105,
+      extraY + 185
+    );
 
     ctx.fillStyle = '#cbd5e1';
     ctx.font = '400 22px system-ui, -apple-system, sans-serif';
-    wrapText(archetype.opportunityText, 105, extraY + 220, width - 210, 32);
+    const subText = archetype
+      ? archetype.opportunityText
+      : report.mode === 'express'
+      ? 'Realiza las 18 pruebas universales para evaluar los 6 ejes motores.'
+      : isZeroData
+      ? 'Comienza una evaluación en modo individual o exprés.'
+      : 'Accede al chequeo completo para finalizar todas las capacidades.';
+
+    wrapText(subText, 105, extraY + 220, width - 210, 32);
   }
 
   // 6. Pie de página y garantía de privacidad

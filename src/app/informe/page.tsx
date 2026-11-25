@@ -138,6 +138,11 @@ function InformeContent() {
   const hasNoData = !report || report.completedCount === 0;
   const isIncomplete = !hasNoData && report.mode === 'full' && report.completedCount < report.totalTests;
 
+  const measuredAxesCount = ALL_AXIS_IDS.filter((axisId) => {
+    const ax = report.axisResults?.[axisId];
+    return ax?.testResults && ax.testResults.some((tr) => !tr.skipped && tr.rawValue !== null);
+  }).length;
+
   const archetype: MotorArchetype | null = determineArchetype(report);
   const microChallenges: MicroChallenge[] = getRecommendedMicroChallenges(report, 2);
 
@@ -360,19 +365,19 @@ function InformeContent() {
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
                 <Zap className="h-4 w-4" />
-                <span>EVALUACIÓN PARCIAL · 3 DE 6 EJES</span>
+                <span>EVALUACIÓN PARCIAL · {measuredAxesCount} DE 6 EJES EVALUADOS</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
                 Perfil Exprés
               </h1>
               <p className="text-sm font-medium text-slate-300">
-                {participant.alias} ({participant.age} años) · Chequeo Rápido de 3 Pruebas
+                {participant.alias} ({participant.age} años) · Chequeo Exprés ({measuredAxesCount} de 6 ejes evaluados)
               </p>
             </div>
 
             <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-4 text-center sm:text-right shrink-0">
               <span className="text-[11px] uppercase tracking-wider text-slate-300 block">
-                Puntuación Media (3 ejes)
+                Puntuación Media ({measuredAxesCount} {measuredAxesCount === 1 ? 'eje' : 'ejes'})
               </span>
               <div className="flex items-baseline justify-center sm:justify-end gap-1">
                 <span className="text-4xl font-mono font-black text-amber-400 tabular-nums">
@@ -381,7 +386,7 @@ function InformeContent() {
                 <span className="text-xs text-slate-400">/ 100</span>
               </div>
               <span className="inline-block mt-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                Nivel: Parcial ({report.globalAverage >= 85 ? 'Referente' : report.globalAverage >= 55 ? 'Sólido' : report.globalAverage >= 25 ? 'En Progreso' : 'Base'})
+                Evaluación Parcial (sin nivel global)
               </span>
             </div>
           </div>

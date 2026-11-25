@@ -106,4 +106,53 @@ describe('1.3 y 1.4: Arquetipos, Sin Datos y Evaluación Parcial Exprés', () =>
     expect(payload.archetypeId).toBe('parcial');
     expect(payload.globalAverage).toBe(70);
   });
+
+  it('evaluación incompleta y modo exprés omitido calculan correctamente los ejes medidos dinámicos', () => {
+    // Modo exprés con 2 pruebas hechas y 1 omitida
+    const expressWithOmission: EvaluationReport = {
+      age: 20,
+      ageBracket: '16-20',
+      sex: 'M',
+      mode: 'express',
+      globalScore: 140,
+      globalAverage: 46.7,
+      completedCount: 2,
+      totalTests: 3,
+      axisResults: {
+        lower_body_strength: {
+          axisId: 'lower_body_strength',
+          name: 'Fuerza Piernas',
+          score: 70,
+          level: 'Sólido',
+          testResults: [{ testId: 'sit_to_stand_5x', name: 'Sentadillas 5x', rawValue: 10, unit: 's', score: 70, level: 'Sólido', zsmStatus: 'in_zsm', skipped: false }],
+        },
+        balance_posture: {
+          axisId: 'balance_posture',
+          name: 'Equilibrio',
+          score: 70,
+          level: 'Sólido',
+          testResults: [{ testId: 'monopodal_open', name: 'Monopodal', rawValue: 35, unit: 's', score: 70, level: 'Sólido', zsmStatus: 'in_zsm', skipped: false }],
+        },
+        coordination_agility: {
+          axisId: 'coordination_agility',
+          name: 'Coordinación',
+          score: 0,
+          level: 'Base',
+          testResults: [{ testId: 'wall_toss_30s', name: 'Lanzamiento', rawValue: null, unit: 'reps', score: 0, level: 'Base', zsmStatus: 'below_zsm', skipped: true }],
+        },
+        core_upper_strength: { axisId: 'core_upper_strength', name: 'Core', score: 0, level: 'Base', testResults: [] },
+        mobility_flexibility: { axisId: 'mobility_flexibility', name: 'Movilidad', score: 0, level: 'Base', testResults: [] },
+        aerobic_stability: { axisId: 'aerobic_stability', name: 'Resistencia', score: 0, level: 'Base', testResults: [] },
+      },
+      lowestAxes: ['coordination_agility', 'core_upper_strength'],
+    };
+
+    expect(determineArchetype(expressWithOmission)).toBeNull();
+    expect(expressWithOmission.completedCount).toBe(2);
+
+    const measuredAxes = Object.values(expressWithOmission.axisResults).filter(
+      (ax) => ax.testResults?.some((t) => !t.skipped && t.rawValue !== null)
+    ).length;
+    expect(measuredAxes).toBe(2);
+  });
 });
