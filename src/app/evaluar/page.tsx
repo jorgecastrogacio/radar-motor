@@ -101,21 +101,40 @@ function EvaluarContent() {
     }
   }, [modeParam, router]);
 
-  // Cargar sesión guardada si existe y coincide con el modo actual
+  // Sesión previa guardada detectada (sin forzar salto a paso 3 ni descartar en silencio)
+  const [savedSession, setSavedSession] = useState<ActiveSession | null>(null);
+  const [hasResolvedSavedPrompt, setHasResolvedSavedPrompt] = useState(false);
+
   useEffect(() => {
     const saved = loadActiveSession();
-    if (saved && saved.mode === mode && saved.participants.length > 0) {
-      const validTestIndex = Math.min(Math.max(0, saved.currentTestIndex || 0), testSequence.length - 1);
-      const validPartIndex = Math.min(Math.max(0, saved.currentParticipantIndex || 0), Math.max(0, saved.participants.length - 1));
-      setSafetyStatus(saved.safetyStatus);
-      setParticipants(saved.participants);
-      setCurrentTestIndex(validTestIndex);
-      setCurrentParticipantIndex(validPartIndex);
-      setStep(3); // Reanudar directamente en la ejecución si es el mismo modo
+    if (saved && saved.participants.length > 0) {
+      setSavedSession(saved);
     }
-  }, [mode, testSequence.length]);
+  }, []);
 
-  // Guardar sesión activa ante cualquier cambio
+  const handleResumeSavedSession = () => {
+    if (!savedSession) return;
+    if (savedSession.mode !== mode) {
+      router.push(`/evaluar?mode=${savedSession.mode}`);
+      return;
+    }
+    const validTestIndex = Math.min(Math.max(0, savedSession.currentTestIndex || 0), testSequence.length - 1);
+    const validPartIndex = Math.min(Math.max(0, savedSession.currentParticipantIndex || 0), Math.max(0, savedSession.participants.length - 1));
+    setSafetyStatus(savedSession.safetyStatus);
+    setParticipants(savedSession.participants);
+    setCurrentTestIndex(validTestIndex);
+    setCurrentParticipantIndex(validPartIndex);
+    setStep(3);
+    setHasResolvedSavedPrompt(true);
+  };
+
+  const handleDiscardSavedSession = () => {
+    clearActiveSession();
+    setSavedSession(null);
+    setHasResolvedSavedPrompt(true);
+  };
+
+  // Guardar sesión activa ante cualquier cambio durante la ejecución (paso 3)
   useEffect(() => {
     if (step === 3) {
       saveActiveSession({
@@ -271,6 +290,43 @@ function EvaluarContent() {
         <div className="rounded-2xl border border-slate-300 bg-slate-100 p-4 text-slate-700 text-xs flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
           <span>El enlace de reto recibido no es válido o está dañado. Puedes continuar con tu evaluación de forma normal.</span>
+        </div>
+      )}
+
+      {/* Diálogo de Elección de Sesión Activa Guardada */}
+      {savedSession && !hasResolvedSavedPrompt && (
+        <div className="rounded-3xl border-2 border-indigo-300 bg-indigo-50/90 p-5 shadow-sm space-y-3 animate-in fade-in duration-150">
+          <div className="flex items-start gap-3">
+            <div className="p-2.5 rounded-2xl bg-indigo-200 text-indigo-950 shrink-0">
+              <Clock className="h-6 w-6 text-indigo-800" />
+            </div>
+            <div>
+              <p className="font-extrabold text-indigo-950 text-sm sm:text-base">
+                {savedSession.mode !== mode
+                  ? `Tienes una evaluación en curso en Modo ${savedSession.mode === 'express' ? 'Exprés' : savedSession.mode === 'family' ? 'Familia' : 'Completo'}`
+                  : `Tienes una evaluación en curso en este modo`}
+              </p>
+              <p className="text-xs text-indigo-900 mt-0.5">
+                Progreso guardado: Prueba {savedSession.currentTestIndex + 1} ({savedSession.participants.map((p) => p.alias).join(', ')}). ¿Deseas continuar donde lo dejaste o empezar una nueva evaluación desde el principio?
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2.5 pt-1 sm:pl-11">
+            <button
+              type="button"
+              onClick={handleResumeSavedSession}
+              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-xs"
+            >
+              Continuar evaluación en curso ({savedSession.mode === 'express' ? 'Exprés' : savedSession.mode === 'family' ? 'Familia' : 'Completa'})
+            </button>
+            <button
+              type="button"
+              onClick={handleDiscardSavedSession}
+              className="px-4 py-2.5 rounded-xl border border-indigo-300 bg-white hover:bg-indigo-100 text-indigo-950 text-xs font-bold transition-colors cursor-pointer"
+            >
+              Empezar una nueva en Modo {mode === 'express' ? 'Exprés' : mode === 'family' ? 'Familia' : 'Completo'}
+            </button>
+          </div>
         </div>
       )}
       {/* =========================================================================
