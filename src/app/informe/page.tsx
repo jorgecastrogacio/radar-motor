@@ -96,44 +96,23 @@ function InformeContent() {
     }
   }, [challengeParam]);
 
-  if (!savedData || savedData.items.length === 0) {
-    return (
-      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-16 text-center space-y-6">
-        <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-3xl bg-slate-100 text-slate-500">
-          <Activity className="h-8 w-8" />
-        </div>
-        <div className="space-y-2">
-          <h1 className="text-2xl font-black text-slate-900">
-            Aún no hay ningún informe generado
-          </h1>
-          <p className="text-sm text-slate-600 max-w-md mx-auto">
-            Completa tu autoevaluación motriz (Reto Exprés o Chequeo Completo) para generar tu mapa funcional de salud.
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link
-            href="/evaluar"
-            className="inline-flex items-center gap-2 min-h-[48px] px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm transition-all"
-          >
-            <span>Comenzar evaluación ahora</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 min-h-[48px] px-6 py-3 rounded-2xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-sm transition-all"
-          >
-            <span>Volver a la portada</span>
-          </Link>
-        </div>
-      </main>
-    );
-  }
+  const fallbackZeroData: SavedReportData = {
+    mode: 'individual',
+    items: [
+      {
+        participant: { id: 'default', alias: 'Invitado', age: 25, sex: 'N', inputs: {} },
+        report: evaluateFullReport(25, 'N', {}, 'full'),
+      },
+    ],
+  };
 
-  const currentItem = savedData.items[selectedParticipantIdx] || savedData.items[0];
+  const effectiveData = savedData && savedData.items.length > 0 ? savedData : fallbackZeroData;
+
+  const currentItem = effectiveData.items[selectedParticipantIdx] || effectiveData.items[0];
   const { participant, report } = currentItem;
 
-  const isFamily = savedData.mode === 'family';
-  const isExpress = savedData.mode === 'express';
+  const isFamily = effectiveData.mode === 'family';
+  const isExpress = effectiveData.mode === 'express';
 
   const hasNoData = !report || report.completedCount === 0;
   const isIncomplete = !hasNoData && report.mode === 'full' && report.completedCount < report.totalTests;
@@ -175,7 +154,7 @@ function InformeContent() {
     };
   } else if (comparisonMode.startsWith('family_')) {
     const fIdx = parseInt(comparisonMode.replace('family_', ''), 10);
-    const fItem = savedData.items[fIdx];
+    const fItem = effectiveData.items[fIdx];
     if (fItem && fItem.participant.id !== participant.id) {
       const fScores: Partial<Record<string, number>> = {};
       for (const [k, v] of Object.entries(fItem.report.axisResults || {})) {
@@ -263,13 +242,13 @@ function InformeContent() {
       )}
 
       {/* Selector de Miembros Familiares si es Modo Familia */}
-      {isFamily && savedData.items.length > 1 && (
+      {isFamily && effectiveData.items.length > 1 && (
         <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2 print:hidden">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-            Participantes evaluados ({savedData.items.length}):
+            Participantes evaluados ({effectiveData.items.length}):
           </span>
           <div className="flex flex-wrap gap-2">
-            {savedData.items.map((item, idx) => (
+            {effectiveData.items.map((item, idx) => (
               <button
                 key={item.participant.id}
                 type="button"
@@ -493,7 +472,7 @@ function InformeContent() {
                 <option value="challenge">Reto: {challengeData.alias}</option>
               )}
               {isFamily &&
-                savedData.items
+                effectiveData.items
                   .map((item, idx) => ({ item, idx }))
                   .filter(({ idx }) => idx !== selectedParticipantIdx)
                   .map(({ item, idx }) => (
@@ -801,7 +780,7 @@ function InformeContent() {
       {/* Pasaporte Familiar Imprimible (A4) */}
       <section className="pt-4 border-t border-slate-200 print:pt-0 print:border-none print:block">
         <FamilyPassportPrint
-          participants={savedData.items.map((it) => ({
+          participants={effectiveData.items.map((it) => ({
             alias: it.participant.alias,
             report: it.report,
           }))}
